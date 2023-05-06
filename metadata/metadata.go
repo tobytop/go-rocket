@@ -3,6 +3,7 @@ package metadata
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -44,6 +45,14 @@ type URI struct {
 	ServiceName string
 	Version     string
 	Method      string
+	fullMethod  string
+}
+
+func (u *URI) formatUrl() {
+	u.fullMethod = fmt.Sprintf("/%v/%v", u.ServiceName, u.Method)
+}
+func (u *URI) GetFullMethod() string {
+	return u.fullMethod
 }
 
 func (m *MetaData) SetServerHost(host string) {
@@ -81,6 +90,7 @@ func (m *MetaData) formatUri() error {
 		Version:     strings.ToLower(st[3]),
 		Method:      strings.ToLower(st[4]),
 	}
+	m.Uri.formatUrl()
 	return nil
 }
 

@@ -15,10 +15,6 @@ type servhost struct {
 	addr string
 }
 
-func (h *servhost) toUrl() string {
-	return fmt.Sprintf("%v/%v/%v", h.addr, h.ServiceName, h.Method)
-}
-
 type PathRule func([]*metadata.URI, *metadata.MetaData) *metadata.URI
 
 func getDefaultRule() PathRule {
@@ -112,7 +108,7 @@ func (s *RouterService) BuildUnit() ware.HandlerUnit {
 			}
 		}
 		fmt.Println(host)
-		data.SetServerHost(host.toUrl())
+		data.SetServerHost(host.addr)
 		return data, nil
 	}
 }

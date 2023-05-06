@@ -49,7 +49,7 @@ func (m *Mash) AddAfterHandle(afterware ware.AfterUnit) {
 func (m *Mash) Listen() error {
 	m.handler = func(ctx context.Context, data *meta.MetaData) (response any, err error) {
 		//connection by grpc
-		gconn, err := grpc.Dial(data.GetHost())
+		gconn, err := grpc.Dial(data.GetHost(), grpc.WithInsecure())
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
@@ -62,7 +62,7 @@ func (m *Mash) Listen() error {
 
 		//invoke the server moethod by grpc
 		var out any
-		err = gconn.Invoke(context, data.GetHost(), data.Params, &out, opt)
+		err = gconn.Invoke(context, data.Uri.GetFullMethod(), data.Params, &out, opt)
 		return out, err
 	}
 
