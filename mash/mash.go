@@ -57,7 +57,7 @@ func (m *Mash) Listen() {
 
 		//build the grpc metadata
 		md := metadata.MD{}
-		context := metadata.NewOutgoingContext(context.Background(), md)
+		context := metadata.NewOutgoingContext(ctx, md)
 		opt := grpc.Header(data.Header)
 
 		//invoke the server moethod by grpc
