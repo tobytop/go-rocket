@@ -14,7 +14,7 @@ func main() {
 	}, []*metadata.URI{
 		{
 			PackageName: "test",
-			ServiceName: "proto.helloword",
+			ServiceName: "helloword",
 			Version:     "v1",
 			Method:      "sayhello",
 		}})))

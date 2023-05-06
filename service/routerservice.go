@@ -111,6 +111,7 @@ func (s *RouterService) BuildUnit() ware.HandlerUnit {
 				break
 			}
 		}
+		fmt.Println(host)
 		data.SetServerHost(host.toUrl())
 		return data, nil
 	}
