@@ -16,9 +16,9 @@ func main() {
 			PackageName: "test",
 			ServiceName: "proto.helloword",
 			Version:     "v1",
-			Method:      "SayHello",
+			Method:      "sayhello",
 		}})))
-	err := mash.ListenWithPort("9000")
+	err := mash.ListenWithPort(":9000")
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

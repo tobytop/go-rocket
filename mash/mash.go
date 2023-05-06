@@ -62,7 +62,7 @@ func (m *Mash) Listen() error {
 
 		//invoke the server moethod by grpc
 		var out any
-		err = gconn.Invoke(context, data.Uri.GetFullMethod(), data.Params, &out, opt)
+		err = gconn.Invoke(context, data.GetHost(), data.Params, &out, opt)
 		return out, err
 	}
 
