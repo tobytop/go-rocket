@@ -25,7 +25,7 @@ type Mash struct {
 func NewMash(format meta.UrlFormat) *Mash {
 	return &Mash{
 		urlformat:   format,
-		middlewares: make([]ware.Middleware, 20),
+		middlewares: make([]ware.Middleware, 0),
 	}
 }
 
@@ -46,7 +46,7 @@ func (m *Mash) AddAfterHandle(afterware ware.AfterUnit) {
 	m.afterhandler = afterware
 }
 
-func (m *Mash) Listen() {
+func (m *Mash) Listen() error {
 	m.handler = func(ctx context.Context, data *meta.MetaData) (response any, err error) {
 		//connection by grpc
 		gconn, err := grpc.Dial(data.GetHost())
@@ -106,10 +106,10 @@ func (m *Mash) Listen() {
 	})
 
 	mux.HandleFunc("/watcher", m.routerservice.Watcher)
-	http.ListenAndServe(m.httpPort, mux)
+	return http.ListenAndServe(m.httpPort, mux)
 }
 
-func (g *Mash) ListenWithPort(port string) {
+func (g *Mash) ListenWithPort(port string) error {
 	g.SetListenPort(port)
-	g.Listen()
+	return g.Listen()
 }
