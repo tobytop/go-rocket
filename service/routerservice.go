@@ -21,7 +21,7 @@ func getDefaultRule() PathRule {
 	return func(paths []*metadata.URI, meta *metadata.MetaData) *metadata.URI {
 		var result *metadata.URI
 		for _, v := range paths {
-			if strings.ToLower(meta.Uri.Method) == strings.ToLower(v.Method) && strings.ToLower(meta.Uri.ServiceName) == strings.ToLower(v.ServiceName) {
+			if strings.EqualFold(meta.Uri.Method, v.Method) && strings.EqualFold(meta.Uri.ServiceName, v.ServiceName) {
 				result = v
 				break
 			}
