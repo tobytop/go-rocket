@@ -14,7 +14,7 @@ type UrlFormat func(*http.Request) (*URI, error)
 type MetaData struct {
 	Req        *http.Request
 	Uri        *URI
-	Params     map[string]any
+	Params     map[string]interface{}
 	Header     *metadata.MD
 	serverhost string
 }
@@ -48,15 +48,13 @@ type URI struct {
 	fullMethod  string
 }
 
-func (u *URI) formatUrl() {
-	u.fullMethod = fmt.Sprintf("/%v/%v", u.ServiceName, u.Method)
-}
 func (u *URI) GetFullMethod() string {
 	return u.fullMethod
 }
 
-func (m *MetaData) SetServerHost(host string) {
+func (m *MetaData) SetServerHost(host string, uri *URI) {
 	m.serverhost = host
+	m.Uri.fullMethod = fmt.Sprintf("/%v.%v/%v", uri.PackageName, uri.ServiceName, uri.Method)
 }
 
 func (m *MetaData) GetHost() string {
@@ -85,12 +83,11 @@ func (m *MetaData) formatUri() error {
 		return errors.New("url is wrong")
 	}
 	m.Uri = &URI{
-		PackageName: strings.ToLower(st[1]),
-		ServiceName: strings.ToLower(st[2]),
-		Version:     strings.ToLower(st[3]),
-		Method:      strings.ToLower(st[4]),
+		PackageName: st[1],
+		ServiceName: st[2],
+		Version:     st[3],
+		Method:      st[4],
 	}
-	m.Uri.formatUrl()
 	return nil
 }
 

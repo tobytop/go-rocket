@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
+	"strings"
 
 	"go-rocket/metadata"
 	"go-rocket/ware"
@@ -21,7 +21,7 @@ func getDefaultRule() PathRule {
 	return func(paths []*metadata.URI, meta *metadata.MetaData) *metadata.URI {
 		var result *metadata.URI
 		for _, v := range paths {
-			if meta.Uri.Method == v.Method && meta.Uri.ServiceName == v.ServiceName {
+			if strings.ToLower(meta.Uri.Method) == strings.ToLower(v.Method) && strings.ToLower(meta.Uri.ServiceName) == strings.ToLower(v.ServiceName) {
 				result = v
 				break
 			}
@@ -107,8 +107,7 @@ func (s *RouterService) BuildUnit() ware.HandlerUnit {
 				break
 			}
 		}
-		fmt.Println(host)
-		data.SetServerHost(host.addr)
+		data.SetServerHost(host.addr, host.URI)
 		return data, nil
 	}
 }

@@ -13,10 +13,10 @@ func main() {
 		"127.0.0.1:50051": 1,
 	}, []*metadata.URI{
 		{
-			PackageName: "test",
-			ServiceName: "helloword",
+			PackageName: "proto",
+			ServiceName: "Greeter",
 			Version:     "v1",
-			Method:      "sayhello",
+			Method:      "SayHello",
 		}})))
 	err := mash.ListenWithPort(":9000")
 	if err != nil {

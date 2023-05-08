@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go-rocket/mash/proto"
 	meta "go-rocket/metadata"
 	"go-rocket/service"
 	"go-rocket/ware"
@@ -48,8 +49,10 @@ func (m *Mash) AddAfterHandle(afterware ware.AfterUnit) {
 
 func (m *Mash) Listen() error {
 	m.handler = func(ctx context.Context, data *meta.MetaData) (response any, err error) {
+
+		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(proto.DefaultGRPCCodecs["application/json"]), grpc.FailFast(false))
 		//connection by grpc
-		gconn, err := grpc.Dial(data.GetHost(), grpc.WithInsecure())
+		gconn, err := grpc.Dial(data.GetHost(), opt, grpc.WithInsecure())
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
@@ -58,11 +61,11 @@ func (m *Mash) Listen() error {
 		//build the grpc metadata
 		md := metadata.MD{}
 		context := metadata.NewOutgoingContext(ctx, md)
-		opt := grpc.Header(data.Header)
+		callopt := grpc.Header(data.Header)
 
 		//invoke the server moethod by grpc
 		var out any
-		err = gconn.Invoke(context, data.Uri.GetFullMethod(), data.Params, &out, opt)
+		err = gconn.Invoke(context, data.Uri.GetFullMethod(), data.Params, &out, callopt)
 		return out, err
 	}
 
