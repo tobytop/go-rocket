@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go-rocket/mash/proto"
+	"go-rocket/mash/codec"
 	meta "go-rocket/metadata"
 	"go-rocket/service"
 	"go-rocket/ware"
@@ -50,7 +50,7 @@ func (m *Mash) AddAfterHandle(afterware ware.AfterUnit) {
 func (m *Mash) Listen() error {
 	m.handler = func(ctx context.Context, data *meta.MetaData) (response any, err error) {
 
-		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(proto.DefaultGRPCCodecs["application/json"]), grpc.FailFast(false))
+		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs["application/json"]), grpc.WaitForReady(false))
 		//connection by grpc
 		gconn, err := grpc.Dial(data.GetHost(), opt, grpc.WithInsecure())
 		if err != nil {

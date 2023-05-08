@@ -1,4 +1,4 @@
-package proto
+package codec
 
 import (
 	"encoding/json"
@@ -38,12 +38,12 @@ func (protoCodec) Name() string {
 }
 
 func (jsonCodec) Marshal(v interface{}) ([]byte, error) {
-	fmt.Println(v)
+	fmt.Println("lala")
 	return json.Marshal(v)
 }
 
 func (jsonCodec) Unmarshal(data []byte, v interface{}) error {
-	fmt.Println(v)
+	fmt.Println("ttt")
 	return json.Unmarshal(data, v)
 }
 

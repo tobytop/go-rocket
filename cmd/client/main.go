@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	pb "go-rocket/example/proto/hello"
-	"go-rocket/mash/proto"
+	"go-rocket/mash/codec"
 	"log"
 	"net"
 
@@ -16,6 +17,7 @@ type server struct {
 }
 
 func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+	fmt.Println(in)
 	// 创建一个HelloReply消息，设置Message字段，然后直接返回。
 	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
 }
@@ -25,7 +27,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	op := grpc.ForceServerCodec(proto.DefaultGRPCCodecs["application/json"])
+	op := grpc.ForceServerCodec(codec.DefaultGRPCCodecs["application/json"])
 	// 实例化grpc服务端
 	s := grpc.NewServer(op)
 
