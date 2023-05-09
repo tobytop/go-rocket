@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -38,6 +39,11 @@ func (err *ErrorMeta) PrintErrorByHttp(writer http.ResponseWriter) {
 	b, _ := json.Marshal(err)
 	writer.Header().Set("Content-Type", "application/json")
 	writer.Write(b)
+}
+
+type RegisterData struct {
+	*URI
+	Message proto.Message
 }
 
 type URI struct {

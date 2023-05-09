@@ -2,7 +2,6 @@ package codec
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/protobuf/proto"
@@ -38,12 +37,10 @@ func (protoCodec) Name() string {
 }
 
 func (jsonCodec) Marshal(v interface{}) ([]byte, error) {
-	fmt.Println("lala")
 	return json.Marshal(v)
 }
 
 func (jsonCodec) Unmarshal(data []byte, v interface{}) error {
-	fmt.Println("ttt")
 	return json.Unmarshal(data, v)
 }
 
