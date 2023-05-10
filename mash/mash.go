@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -47,10 +48,9 @@ func (m *Mash) AddAfterHandle(afterware ware.AfterUnit) {
 
 func (m *Mash) Listen() error {
 	m.handler = func(ctx context.Context, data *meta.MetaData) (response any, err error) {
-
 		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs["application/json"]), grpc.WaitForReady(false))
 		//connection by grpc
-		gconn, err := grpc.Dial(data.GetHost(), opt, grpc.WithInsecure())
+		gconn, err := grpc.Dial(data.GetHost(), opt, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
