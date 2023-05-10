@@ -48,7 +48,6 @@ type RegisterData struct {
 type URI struct {
 	PackageName string
 	ServiceName string
-	Version     string
 	Method      string
 	fullMethod  string
 }
@@ -59,11 +58,7 @@ func (u *URI) GetFullMethod() string {
 
 func (m *MetaData) SetServerHost(host string, uri *URI) {
 	m.serverhost = host
-	if m.Uri.Version == "" {
-		m.Uri.fullMethod = fmt.Sprintf("/%v.%v/%v", uri.PackageName, uri.ServiceName, uri.Method)
-	} else {
-		m.Uri.fullMethod = fmt.Sprintf("/%v.%v.%v/%v", uri.PackageName, uri.Version, uri.ServiceName, uri.Method)
-	}
+	m.Uri.fullMethod = fmt.Sprintf("/%v.%v/%v", uri.PackageName, uri.ServiceName, uri.Method)
 }
 
 func (m *MetaData) GetHost() string {
@@ -80,25 +75,15 @@ func (m *MetaData) FormatAll() error {
 
 func (m *MetaData) formatUri() error {
 	st := strings.Split(m.Req.URL.Path, "/")
-	switch len(st) {
-	case 4:
-		m.Uri = &URI{
-			PackageName: st[1],
-			ServiceName: st[2],
-			Method:      st[3],
-		}
-		return nil
-	case 5:
-		m.Uri = &URI{
-			PackageName: st[1],
-			ServiceName: st[2],
-			Version:     st[3],
-			Method:      st[4],
-		}
-		return nil
-	default:
+	if len(st) != 4 {
 		return errors.New("url is wrong")
 	}
+	m.Uri = &URI{
+		PackageName: st[1],
+		ServiceName: st[2],
+		Method:      st[3],
+	}
+	return nil
 }
 
 func (m *MetaData) FormatParams() {

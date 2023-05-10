@@ -15,7 +15,6 @@ func main() {
 		{
 			PackageName: "proto",
 			ServiceName: "Greeter",
-			Version:     "v1",
 			Method:      "SayHello",
 		}})))
 	err := mash.ListenWithPort(":9000")

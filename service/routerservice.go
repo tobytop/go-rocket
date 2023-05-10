@@ -15,28 +15,7 @@ type servhost struct {
 	addr string
 }
 
-type PathRule func([]*metadata.URI, *metadata.MetaData) *metadata.URI
-
-func getDefaultRule() PathRule {
-	return func(paths []*metadata.URI, meta *metadata.MetaData) *metadata.URI {
-		var result *metadata.URI
-		for _, v := range paths {
-			if strings.EqualFold(meta.Uri.Method, v.Method) && strings.EqualFold(meta.Uri.ServiceName, v.ServiceName) {
-				result = v
-				break
-			}
-		}
-		return result
-	}
-}
-
 type RegBuilder func(*RouterService)
-
-func BuilderRule(rule PathRule) RegBuilder {
-	return func(rs *RouterService) {
-		rs.rule = rule
-	}
-}
 
 func BuilderBalance(balancetype int) RegBuilder {
 	return func(rs *RouterService) {
@@ -65,7 +44,6 @@ func BuilderRegCenter(reg RegCenter) RegBuilder {
 
 type RouterService struct {
 	*Router
-	rule    PathRule
 	balance Balance
 	reg     RegCenter
 }
@@ -82,16 +60,18 @@ func BuildService(builders ...RegBuilder) *RouterService {
 		}
 	}
 
-	if sevice.rule == nil {
-		sevice.rule = getDefaultRule()
-	}
-
 	return sevice
 }
 
 func (s *RouterService) BuildUnit() ware.HandlerUnit {
 	return func(ctx context.Context, data *metadata.MetaData) (response any, err error) {
-		uri := s.rule(s.Paths, data)
+		var uri *metadata.URI
+		for _, v := range s.Paths {
+			if strings.EqualFold(data.Uri.PackageName, v.PackageName) && strings.EqualFold(data.Uri.Method, v.Method) && strings.EqualFold(data.Uri.ServiceName, v.ServiceName) {
+				uri = v
+				break
+			}
+		}
 		if uri == nil {
 			return nil, errors.New("no router here")
 		}
