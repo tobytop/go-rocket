@@ -17,15 +17,13 @@ import (
 type Mash struct {
 	httpPort      string
 	routerservice *service.RouterService
-	urlformat     meta.UrlFormat
 	handler       ware.HandlerUnit
 	middlewares   []ware.Middleware
 	afterhandler  ware.AfterUnit
 }
 
-func NewMash(format meta.UrlFormat) *Mash {
+func NewMash() *Mash {
 	return &Mash{
-		urlformat:   format,
 		middlewares: make([]ware.Middleware, 0),
 	}
 }
@@ -81,7 +79,7 @@ func (m *Mash) Listen() error {
 		data := &meta.MetaData{
 			Req: r,
 		}
-		err := data.FormatAll(m.urlformat)
+		err := data.FormatAll()
 		if err != nil {
 			errmsg := meta.NewError(err)
 			errmsg.PrintErrorByHttp(w)

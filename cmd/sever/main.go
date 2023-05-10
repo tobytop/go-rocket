@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	mash := mash.NewMash(nil)
+	mash := mash.NewMash()
 	mash.BuliderRouter(service.BuilderBalance(service.None), service.BuilderRegCenter(service.NewLocalCenter(map[string]int{
 		"127.0.0.1:50051": 1,
 	}, []*metadata.URI{

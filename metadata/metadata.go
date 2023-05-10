@@ -11,7 +11,6 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type UrlFormat func(*http.Request) (*URI, error)
 type MetaData struct {
 	Req        *http.Request
 	Uri        *URI
@@ -60,22 +59,18 @@ func (u *URI) GetFullMethod() string {
 
 func (m *MetaData) SetServerHost(host string, uri *URI) {
 	m.serverhost = host
-	m.Uri.fullMethod = fmt.Sprintf("/%v.%v/%v", uri.PackageName, uri.ServiceName, uri.Method)
+	if m.Uri.Version == "" {
+		m.Uri.fullMethod = fmt.Sprintf("/%v.%v/%v", uri.PackageName, uri.ServiceName, uri.Method)
+	} else {
+		m.Uri.fullMethod = fmt.Sprintf("/%v.%v.%v/%v", uri.PackageName, uri.Version, uri.ServiceName, uri.Method)
+	}
 }
 
 func (m *MetaData) GetHost() string {
 	return m.serverhost
 }
-func (m *MetaData) FormatAll(format UrlFormat) error {
-	var err error
-	if format != nil {
-		uri, err := format(m.Req)
-		if err != nil {
-			m.Uri = uri
-		}
-	} else {
-		err = m.formatUri()
-	}
+func (m *MetaData) FormatAll() error {
+	err := m.formatUri()
 	if err == nil {
 		m.FormatParams()
 		m.FormatHeader()
@@ -85,16 +80,25 @@ func (m *MetaData) FormatAll(format UrlFormat) error {
 
 func (m *MetaData) formatUri() error {
 	st := strings.Split(m.Req.URL.Path, "/")
-	if len(st) < 5 {
+	switch len(st) {
+	case 4:
+		m.Uri = &URI{
+			PackageName: st[1],
+			ServiceName: st[2],
+			Method:      st[3],
+		}
+		return nil
+	case 5:
+		m.Uri = &URI{
+			PackageName: st[1],
+			ServiceName: st[2],
+			Version:     st[3],
+			Method:      st[4],
+		}
+		return nil
+	default:
 		return errors.New("url is wrong")
 	}
-	m.Uri = &URI{
-		PackageName: st[1],
-		ServiceName: st[2],
-		Version:     st[3],
-		Method:      st[4],
-	}
-	return nil
 }
 
 func (m *MetaData) FormatParams() {
