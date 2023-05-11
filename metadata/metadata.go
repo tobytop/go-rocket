@@ -108,5 +108,5 @@ func (m *MetaData) FormatParams() {
 }
 
 func (m *MetaData) FormatHeader() {
-	m.Header = new(metadata.MD)
+	m.Header = (*metadata.MD)(&m.Req.Header)
 }
