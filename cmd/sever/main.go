@@ -5,11 +5,13 @@ import (
 	"go-rocket/mash"
 	"go-rocket/metadata"
 	"go-rocket/service"
+	"reflect"
 
 	"log"
 )
 
 func main() {
+	//fmt.Println(reflect.TypeOf(&pb.HelloRequest{}).Elem().PkgPath())
 	mash := mash.NewMash()
 	mash.BuliderRouter(
 		service.BuilderBalance(service.None),
@@ -21,8 +23,8 @@ func main() {
 				PackageName:     "proto",
 				ServiceName:     "Greeter",
 				Method:          "SayHello",
-				RequestMessage:  "HelloRequest",
-				ResponseMessage: "HelloReply",
+				RequestMessage:  reflect.TypeOf(pb.HelloRequest{}).String(),
+				ResponseMessage: reflect.TypeOf(pb.HelloReply{}).String(),
 			}})))
 	err := mash.ListenWithPort(":9000")
 	if err != nil {

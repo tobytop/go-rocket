@@ -17,6 +17,7 @@ import (
 
 type Mash struct {
 	httpPort      string
+	codecName     string
 	routerservice *service.RouterService
 	handler       ware.HandlerUnit
 	middlewares   []ware.Middleware
@@ -25,6 +26,7 @@ type Mash struct {
 
 func NewMash() *Mash {
 	return &Mash{
+		codecName:   "application/proto",
 		middlewares: make([]ware.Middleware, 0),
 	}
 }
@@ -38,6 +40,10 @@ func (m *Mash) SetListenPort(port string) {
 	m.httpPort = port
 }
 
+func (m *Mash) SetCodec(codecname string) {
+	m.codecName = codecname
+}
+
 func (m *Mash) AddMiddlewares(middleware ...ware.Middleware) {
 	m.middlewares = append(m.middlewares, middleware...)
 }
@@ -47,8 +53,9 @@ func (m *Mash) AddAfterHandle(afterware ware.AfterUnit) {
 }
 
 func (m *Mash) Listen() error {
+	dic := m.routerservice.GetDic()
 	m.handler = func(ctx context.Context, data *meta.MetaData) (response any, err error) {
-		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs["application/proto"]), grpc.WaitForReady(false))
+		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs[m.codecName]), grpc.WaitForReady(false))
 		//connection by grpc
 		gconn, err := grpc.Dial(data.GetHost(), opt, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
@@ -62,9 +69,20 @@ func (m *Mash) Listen() error {
 		callopt := grpc.Header(data.Header)
 
 		//invoke the server moethod by grpc
-		in, out := data.ConvertToMessage(m.routerservice.GetDic())
-		err = gconn.Invoke(context, data.Uri.GetFullMethod(), in, out, callopt)
-		return out, err
+		var (
+			in  any
+			out any
+		)
+		switch m.codecName {
+		case "application/json":
+			in = data.Params
+			err = gconn.Invoke(context, data.Uri.GetFullMethod(), in, &out, callopt)
+			return out, err
+		default:
+			in, out = data.ConvertToMessage(dic)
+			err = gconn.Invoke(context, data.Uri.GetFullMethod(), in, out, callopt)
+			return out, err
+		}
 	}
 
 	for _, v := range m.middlewares {

@@ -42,11 +42,6 @@ func (err *ErrorMeta) PrintErrorByHttp(writer http.ResponseWriter) {
 	writer.Write(b)
 }
 
-type RegisterData struct {
-	*URI
-	Message proto.Message
-}
-
 type URI struct {
 	PackageName     string
 	ServiceName     string
@@ -112,6 +107,9 @@ func (m *MetaData) FormatParams() {
 }
 
 func (m *MetaData) ConvertToMessage(dic map[string]proto.Message) (proto.Message, proto.Message) {
+	if len(dic) == 0 {
+		return nil, nil
+	}
 	reqIn := dic[m.Uri.RequestMessage]
 	resOut := dic[m.Uri.ResponseMessage]
 	req := reflect.New(reflect.TypeOf(reqIn).Elem()).Interface()
@@ -125,7 +123,6 @@ func (m *MetaData) ConvertToMessage(dic map[string]proto.Message) (proto.Message
 
 	in := req.(proto.Message)
 	out := res.(proto.Message)
-	fmt.Println(in)
 	return in, out
 }
 

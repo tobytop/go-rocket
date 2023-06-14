@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -53,8 +52,7 @@ func BuildRegMessage(regs ...proto.Message) RegBuilder {
 		for _, reg := range regs {
 			typeOfMessage := reflect.TypeOf(reg)
 			typeOfMessage = typeOfMessage.Elem()
-			fmt.Println(typeOfMessage.Name())
-			regtable[typeOfMessage.Name()] = reg
+			regtable[typeOfMessage.String()] = reg
 		}
 		rs.regtable = regtable
 	}
@@ -101,7 +99,8 @@ func (s *RouterService) BuildUnit() ware.HandlerUnit {
 		host := &servhost{
 			URI: uri,
 		}
-		data.Uri = uri
+		data.Uri.RequestMessage = uri.RequestMessage
+		data.Uri.ResponseMessage = uri.ResponseMessage
 
 		if len(s.Hosts) > 1 && s.balance != nil {
 			host.addr = s.balance.next()
