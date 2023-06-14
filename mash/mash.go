@@ -48,7 +48,7 @@ func (m *Mash) AddAfterHandle(afterware ware.AfterUnit) {
 
 func (m *Mash) Listen() error {
 	m.handler = func(ctx context.Context, data *meta.MetaData) (response any, err error) {
-		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs["application/json"]), grpc.WaitForReady(false))
+		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs["application/proto"]), grpc.WaitForReady(false))
 		//connection by grpc
 		gconn, err := grpc.Dial(data.GetHost(), opt, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
@@ -62,8 +62,8 @@ func (m *Mash) Listen() error {
 		callopt := grpc.Header(data.Header)
 
 		//invoke the server moethod by grpc
-		var out any
-		err = gconn.Invoke(context, data.Uri.GetFullMethod(), data.Params, &out, callopt)
+		in, out := data.ConvertToMessage(m.routerservice.GetDic())
+		err = gconn.Invoke(context, data.Uri.GetFullMethod(), in, out, callopt)
 		return out, err
 	}
 

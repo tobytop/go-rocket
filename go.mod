@@ -15,6 +15,7 @@ require (
 	github.com/miekg/dns v1.1.27 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/nats-io/jwt v0.3.2 // indirect
 	github.com/nats-io/nats.go v1.9.2 // indirect
 	github.com/nats-io/nkeys v0.1.4 // indirect

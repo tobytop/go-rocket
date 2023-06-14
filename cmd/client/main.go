@@ -27,7 +27,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	op := grpc.ForceServerCodec(codec.DefaultGRPCCodecs["application/json"])
+	op := grpc.ForceServerCodec(codec.DefaultGRPCCodecs["application/proto"])
 	// 实例化grpc服务端
 	s := grpc.NewServer(op)
 

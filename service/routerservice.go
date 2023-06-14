@@ -3,11 +3,15 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"go-rocket/metadata"
 	"go-rocket/ware"
+
+	"google.golang.org/protobuf/proto"
 )
 
 type servhost struct {
@@ -31,6 +35,7 @@ func BuilderBalance(balancetype int) RegBuilder {
 		rs.balance = balance
 	}
 }
+
 func BuilderRegCenter(reg RegCenter) RegBuilder {
 	return func(rs *RouterService) {
 		hosts, path := reg.LoadDic()
@@ -42,10 +47,28 @@ func BuilderRegCenter(reg RegCenter) RegBuilder {
 	}
 }
 
+func BuildRegMessage(regs ...proto.Message) RegBuilder {
+	return func(rs *RouterService) {
+		regtable := make(map[string]proto.Message)
+		for _, reg := range regs {
+			typeOfMessage := reflect.TypeOf(reg)
+			typeOfMessage = typeOfMessage.Elem()
+			fmt.Println(typeOfMessage.Name())
+			regtable[typeOfMessage.Name()] = reg
+		}
+		rs.regtable = regtable
+	}
+}
+
 type RouterService struct {
 	*Router
-	balance Balance
-	reg     RegCenter
+	regtable map[string]proto.Message
+	balance  Balance
+	reg      RegCenter
+}
+
+func (s *RouterService) GetDic() map[string]proto.Message {
+	return s.regtable
 }
 
 func BuildService(builders ...RegBuilder) *RouterService {
@@ -78,6 +101,7 @@ func (s *RouterService) BuildUnit() ware.HandlerUnit {
 		host := &servhost{
 			URI: uri,
 		}
+		data.Uri = uri
 
 		if len(s.Hosts) > 1 && s.balance != nil {
 			host.addr = s.balance.next()

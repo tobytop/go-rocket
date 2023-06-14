@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
+	"github.com/mitchellh/mapstructure"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/proto"
 )
 
 type MetaData struct {
@@ -46,10 +48,12 @@ type RegisterData struct {
 }
 
 type URI struct {
-	PackageName string
-	ServiceName string
-	Method      string
-	fullMethod  string
+	PackageName     string
+	ServiceName     string
+	Method          string
+	RequestMessage  string
+	ResponseMessage string
+	fullMethod      string
 }
 
 func (u *URI) GetFullMethod() string {
@@ -105,6 +109,24 @@ func (m *MetaData) FormatParams() {
 		}
 	}
 	m.Params = params
+}
+
+func (m *MetaData) ConvertToMessage(dic map[string]proto.Message) (proto.Message, proto.Message) {
+	reqIn := dic[m.Uri.RequestMessage]
+	resOut := dic[m.Uri.ResponseMessage]
+	req := reflect.New(reflect.TypeOf(reqIn).Elem()).Interface()
+	res := reflect.New(reflect.TypeOf(resOut).Elem()).Interface()
+
+	err := mapstructure.Decode(m.Params, &req)
+	if err != nil {
+		fmt.Println(err)
+		return nil, nil
+	}
+
+	in := req.(proto.Message)
+	out := res.(proto.Message)
+	fmt.Println(in)
+	return in, out
 }
 
 func (m *MetaData) FormatHeader() {
