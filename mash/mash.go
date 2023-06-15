@@ -3,6 +3,7 @@ package mash
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go-rocket/mash/codec"
 	meta "go-rocket/metadata"
@@ -54,6 +55,9 @@ func (m *Mash) AddAfterHandle(afterware ware.AfterUnit) {
 
 func (m *Mash) Listen() error {
 	dic := m.routerservice.GetDic()
+	if m.codecName == "application/proto" && len(dic) == 0 {
+		return errors.New("in proto model must have the proto message")
+	}
 	m.handler = func(ctx context.Context, data *meta.MetaData) (response any, err error) {
 		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs[m.codecName]), grpc.WaitForReady(false))
 		//connection by grpc
