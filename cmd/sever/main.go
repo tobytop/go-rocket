@@ -3,9 +3,7 @@ package main
 import (
 	pb "go-rocket/example/proto/hello"
 	"go-rocket/mash"
-	"go-rocket/metadata"
 	"go-rocket/service"
-	"reflect"
 
 	"log"
 )
@@ -18,13 +16,13 @@ func main() {
 		service.BuildRegMessage(&pb.HelloRequest{}, &pb.HelloReply{}),
 		service.BuilderRegCenter(service.NewLocalCenter(map[string]int{
 			"127.0.0.1:50051": 1,
-		}, []*metadata.URI{
+		}, []*service.RouterInfo{
 			{
-				PackageName:     "proto",
-				ServiceName:     "Greeter",
-				Method:          "SayHello",
-				RequestMessage:  reflect.TypeOf(pb.HelloRequest{}).String(),
-				ResponseMessage: reflect.TypeOf(pb.HelloReply{}).String(),
+				PackageName: "proto",
+				ServiceName: "Greeter",
+				Method:      "SayHello",
+				InMessage:   &pb.HelloRequest{},
+				OutMessage:  &pb.HelloReply{},
 			}})))
 	err := mash.ListenWithPort(":9000")
 	if err != nil {
