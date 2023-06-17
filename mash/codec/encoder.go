@@ -24,11 +24,11 @@ var (
 	}
 )
 
-func (protoCodec) Marshal(v interface{}) ([]byte, error) {
+func (protoCodec) Marshal(v any) ([]byte, error) {
 	return proto.Marshal(v.(proto.Message))
 }
 
-func (protoCodec) Unmarshal(data []byte, v interface{}) error {
+func (protoCodec) Unmarshal(data []byte, v any) error {
 	return proto.Unmarshal(data, v.(proto.Message))
 }
 
@@ -36,11 +36,11 @@ func (protoCodec) Name() string {
 	return "proto"
 }
 
-func (jsonCodec) Marshal(v interface{}) ([]byte, error) {
+func (jsonCodec) Marshal(v any) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func (jsonCodec) Unmarshal(data []byte, v interface{}) error {
+func (jsonCodec) Unmarshal(data []byte, v any) error {
 	return json.Unmarshal(data, v)
 }
 

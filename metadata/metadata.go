@@ -16,7 +16,7 @@ import (
 type MetaData struct {
 	Req        *http.Request
 	Uri        *URI
-	Params     map[string]interface{}
+	Params     map[string]any
 	Header     *metadata.MD
 	serverhost string
 }
