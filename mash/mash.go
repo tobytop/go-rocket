@@ -47,9 +47,8 @@ func (m *Mash) AddAfterHandle(afterware ware.AfterUnit) {
 }
 
 func (m *Mash) Listen() error {
-	dic := m.routerservice.GetDic()
 	m.handler = func(ctx context.Context, data *meta.MetaData) (response any, err error) {
-		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs[m.routerservice.Codec]), grpc.WaitForReady(false))
+		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs[data.Codec]), grpc.WaitForReady(false))
 		//connection by grpc
 		gconn, err := grpc.Dial(data.GetHost(), opt, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
@@ -67,13 +66,13 @@ func (m *Mash) Listen() error {
 			in  any
 			out any
 		)
-		switch m.routerservice.Codec {
+		switch data.Codec {
 		case "application/json":
 			in = data.Params
 			err = gconn.Invoke(context, data.Uri.GetFullMethod(), in, &out, callopt)
 			return out, err
 		default:
-			in, out = data.ConvertToMessage(dic)
+			in, out = data.ConvertToMessage(m.routerservice.GetDic())
 			err = gconn.Invoke(context, data.Uri.GetFullMethod(), in, out, callopt)
 			return out, err
 		}

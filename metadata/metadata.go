@@ -16,6 +16,7 @@ import (
 type MetaData struct {
 	Req        *http.Request
 	Uri        *URI
+	Codec      string
 	Params     map[string]any
 	Header     *metadata.MD
 	serverhost string
@@ -127,5 +128,10 @@ func (m *MetaData) ConvertToMessage(dic map[string]proto.Message) (proto.Message
 }
 
 func (m *MetaData) FormatHeader() {
+	if contenttype, ok := m.Req.Header["Response-Content-Type"]; ok && len(contenttype) > 0 {
+		m.Codec = contenttype[0]
+	} else {
+		m.Codec = "application/proto"
+	}
 	m.Header = (*metadata.MD)(&m.Req.Header)
 }

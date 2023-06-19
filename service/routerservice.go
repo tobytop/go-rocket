@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"reflect"
 	"strings"
@@ -22,6 +23,7 @@ type RegBuilder func(*RouterService)
 
 func BuilderBalance(balancetype int) RegBuilder {
 	return func(rs *RouterService) {
+		log.Println("begin loading balance")
 		var balance Balance
 		switch balancetype {
 		case RoundRobin:
@@ -32,38 +34,39 @@ func BuilderBalance(balancetype int) RegBuilder {
 			balance = nil
 		}
 		rs.balance = balance
+		log.Println("balance is" + reflect.ValueOf(balance).Kind().String())
 	}
 }
 
 func BuilderRegCenter(reg RegCenter) RegBuilder {
 	return func(rs *RouterService) {
+		log.Println("registor router")
 		hosts, path := reg.LoadDic()
 		rs.Router = &Router{
 			Paths: path,
 			Hosts: hosts,
 		}
 		rs.reg = reg
+		log.Println("end registor router")
 	}
 }
 
 func BuildRegMessage(regs ...proto.Message) RegBuilder {
 	return func(rs *RouterService) {
+		log.Println("registor grpc message")
 		regtable := make(map[string]proto.Message)
 		for _, reg := range regs {
 			typeOfMessage := reflect.TypeOf(reg)
 			typeOfMessage = typeOfMessage.Elem()
 			regtable[typeOfMessage.String()] = reg
 		}
-		if len(regtable) > 0 {
-			rs.Codec = "application/proto"
-		}
 		rs.regtable = regtable
+		log.Println("end registor grpc message")
 	}
 }
 
 type RouterService struct {
 	*Router
-	Codec    string
 	regtable map[string]proto.Message
 	balance  Balance
 	reg      RegCenter
@@ -74,9 +77,7 @@ func (s *RouterService) GetDic() map[string]proto.Message {
 }
 
 func BuildService(builders ...RegBuilder) *RouterService {
-	sevice := &RouterService{
-		Codec: "application/json",
-	}
+	sevice := &RouterService{}
 	for _, builder := range builders {
 		builder(sevice)
 	}
