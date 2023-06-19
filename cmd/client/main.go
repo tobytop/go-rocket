@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	pb "go-rocket/example/proto/hello"
-	"go-rocket/mash/codec"
 	"log"
 	"net"
 
@@ -27,9 +26,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	op := grpc.ForceServerCodec(codec.DefaultGRPCCodecs["application/proto"])
+	//op := grpc.ForceServerCodec(codec.DefaultGRPCCodecs["application/proto"])
 	// 实例化grpc服务端
-	s := grpc.NewServer(op)
+	s := grpc.NewServer()
 
 	// 注册Greeter服务
 	pb.RegisterGreeterServer(s, new(server))

@@ -54,12 +54,16 @@ func BuildRegMessage(regs ...proto.Message) RegBuilder {
 			typeOfMessage = typeOfMessage.Elem()
 			regtable[typeOfMessage.String()] = reg
 		}
+		if len(regtable) > 0 {
+			rs.Codec = "application/proto"
+		}
 		rs.regtable = regtable
 	}
 }
 
 type RouterService struct {
 	*Router
+	Codec    string
 	regtable map[string]proto.Message
 	balance  Balance
 	reg      RegCenter
@@ -70,7 +74,9 @@ func (s *RouterService) GetDic() map[string]proto.Message {
 }
 
 func BuildService(builders ...RegBuilder) *RouterService {
-	sevice := &RouterService{}
+	sevice := &RouterService{
+		Codec: "application/json",
+	}
 	for _, builder := range builders {
 		builder(sevice)
 	}
