@@ -18,11 +18,11 @@ type server struct {
 func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
 	fmt.Println(in)
 	// 创建一个HelloReply消息，设置Message字段，然后直接返回。
-	return &pb.HelloReply{Message: "Hello 2" + in.Name}, nil
+	return &pb.HelloReply{Message: "Hello 1" + in.Name}, nil
 }
 
 func main() {
-	lis, err := net.Listen("tcp", "127.0.0.1:50051")
+	lis, err := net.Listen("tcp", "127.0.0.1:50052")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

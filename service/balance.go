@@ -22,6 +22,23 @@ type roundRobinBalance struct {
 	addrList []string
 }
 
+func NewBalance(balancetype int) Balance {
+	var balance Balance
+	switch balancetype {
+	case RoundRobin:
+		balance = &roundRobinBalance{
+			addrList: make([]string, 50),
+		}
+	case WeightRobin:
+		balance = &weightRoundRobinBalance{
+			addrList: make(map[string]*node),
+		}
+	default:
+		balance = nil
+	}
+	return balance
+}
+
 func (b *roundRobinBalance) Add(addr string, weight int) {
 	if !slices.Contains(b.addrList, addr) {
 		b.addrList = append(b.addrList, addr)

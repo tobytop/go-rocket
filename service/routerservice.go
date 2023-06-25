@@ -24,17 +24,8 @@ type RegBuilder func(*RouterService)
 func BuilderBalance(balancetype int) RegBuilder {
 	return func(rs *RouterService) {
 		log.Println("begin loading balance")
-		var balance Balance
-		switch balancetype {
-		case RoundRobin:
-			balance = &roundRobinBalance{}
-		case WeightRobin:
-			balance = &weightRoundRobinBalance{}
-		default:
-			balance = nil
-		}
-		rs.balance = balance
-		log.Println("balance is" + reflect.ValueOf(balance).Kind().String())
+		rs.balance = NewBalance(balancetype)
+		log.Println("balance is" + reflect.ValueOf(rs.balance).Kind().String())
 	}
 }
 
