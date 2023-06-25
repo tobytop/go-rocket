@@ -49,16 +49,14 @@ type URI struct {
 	Method          string
 	RequestMessage  string
 	ResponseMessage string
-	fullMethod      string
 }
 
 func (u *URI) GetFullMethod() string {
-	return u.fullMethod
+	return fmt.Sprintf("/%v.%v/%v", u.PackageName, u.ServiceName, u.Method)
 }
 
-func (m *MetaData) SetServerHost(host string, uri *URI) {
+func (m *MetaData) SetServerHost(host string) {
 	m.serverhost = host
-	m.Uri.fullMethod = fmt.Sprintf("/%v.%v/%v", uri.PackageName, uri.ServiceName, uri.Method)
 }
 
 func (m *MetaData) GetHost() string {
@@ -79,9 +77,9 @@ func (m *MetaData) formatUri() error {
 		return errors.New("url is wrong")
 	}
 	m.Uri = &URI{
-		PackageName: st[1],
-		ServiceName: st[2],
-		Method:      st[3],
+		PackageName: strings.ToLower(st[1]),
+		ServiceName: strings.ToLower(st[2]),
+		Method:      strings.ToLower(st[3]),
 	}
 	return nil
 }

@@ -1,9 +1,11 @@
 package service
 
 import (
+	"fmt"
 	"go-rocket/metadata"
 	"net/http"
 	"reflect"
+	"strings"
 )
 
 const (
@@ -13,7 +15,7 @@ const (
 )
 
 type RegCenter interface {
-	LoadDic() (map[string]int, []*metadata.URI)
+	LoadDic() (map[string]int, map[string]*metadata.URI)
 	Watcher(*RegContext)
 }
 
@@ -33,7 +35,7 @@ type RouterInfo struct {
 }
 
 type Router struct {
-	Paths []*metadata.URI
+	Paths map[string]*metadata.URI
 	Hosts map[string]int
 }
 
@@ -42,7 +44,7 @@ type LocalCenter struct {
 }
 
 func NewLocalCenter(hosts map[string]int, path []*RouterInfo) *LocalCenter {
-	paths := make([]*metadata.URI, 0)
+	paths := make(map[string]*metadata.URI)
 	for _, v := range path {
 		p := new(metadata.URI)
 		p.Method = v.Method
@@ -50,7 +52,8 @@ func NewLocalCenter(hosts map[string]int, path []*RouterInfo) *LocalCenter {
 		p.ServiceName = v.ServiceName
 		p.RequestMessage = getTypeName(reflect.TypeOf(v.InMessage))
 		p.ResponseMessage = getTypeName(reflect.TypeOf(v.OutMessage))
-		paths = append(paths, p)
+		key := fmt.Sprintf("/%v.%v/%v", strings.ToLower(v.PackageName), strings.ToLower(v.ServiceName), strings.ToLower(v.Method))
+		paths[key] = p
 	}
 
 	return &LocalCenter{
@@ -69,7 +72,7 @@ func getTypeName(objType reflect.Type) string {
 	}
 }
 
-func (l *LocalCenter) LoadDic() (map[string]int, []*metadata.URI) {
+func (l *LocalCenter) LoadDic() (map[string]int, map[string]*metadata.URI) {
 	return l.Hosts, l.Paths
 }
 

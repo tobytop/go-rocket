@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"strings"
 
 	"go-rocket/metadata"
 	"go-rocket/ware"
@@ -84,31 +83,27 @@ func BuildService(builders ...RegBuilder) *RouterService {
 
 func (s *RouterService) BuildUnit() ware.HandlerUnit {
 	return func(ctx context.Context, data *metadata.MetaData) (response any, err error) {
-		var uri *metadata.URI
-		for _, v := range s.Paths {
-			if strings.EqualFold(data.Uri.PackageName, v.PackageName) && strings.EqualFold(data.Uri.Method, v.Method) && strings.EqualFold(data.Uri.ServiceName, v.ServiceName) {
-				uri = v
-				break
-			}
-		}
-		if uri == nil {
+		uri, ok := s.Paths[data.Uri.GetFullMethod()]
+		if !ok {
 			return nil, errors.New("no router here")
 		}
-		host := &servhost{
-			URI: uri,
-		}
+
+		data.Uri.Method = uri.Method
+		data.Uri.PackageName = uri.PackageName
+		data.Uri.ServiceName = uri.ServiceName
 		data.Uri.RequestMessage = uri.RequestMessage
 		data.Uri.ResponseMessage = uri.ResponseMessage
 
+		var addr string
 		if len(s.Hosts) > 1 && s.balance != nil {
-			host.addr = s.balance.next()
+			addr = s.balance.next()
 		} else {
 			for k := range s.Hosts {
-				host.addr = k
+				addr = k
 				break
 			}
 		}
-		data.SetServerHost(host.addr, host.URI)
+		data.SetServerHost(addr)
 		return data, nil
 	}
 }
