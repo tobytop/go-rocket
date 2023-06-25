@@ -77,9 +77,9 @@ func (m *MetaData) formatUri() error {
 		return errors.New("url is wrong")
 	}
 	m.Uri = &URI{
-		PackageName: strings.ToLower(st[1]),
-		ServiceName: strings.ToLower(st[2]),
-		Method:      strings.ToLower(st[3]),
+		PackageName: st[1],
+		ServiceName: st[2],
+		Method:      st[3],
 	}
 	return nil
 }
