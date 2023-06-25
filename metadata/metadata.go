@@ -49,6 +49,7 @@ type URI struct {
 	Method          string
 	RequestMessage  string
 	ResponseMessage string
+	Host            string
 }
 
 func (u *URI) GetFullMethod() string {

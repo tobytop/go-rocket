@@ -13,11 +13,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type servhost struct {
-	*metadata.URI
-	addr string
-}
-
 type RegBuilder func(*RouterService)
 
 func BuilderBalance(balancetype int) RegBuilder {
@@ -72,7 +67,7 @@ func BuildService(builders ...RegBuilder) *RouterService {
 		builder(sevice)
 	}
 
-	if sevice.balance != nil {
+	if sevice.balance != nil && sevice.Hosts != nil {
 		for k, v := range sevice.Hosts {
 			sevice.balance.Add(k, v)
 		}
@@ -95,7 +90,9 @@ func (s *RouterService) BuildUnit() ware.HandlerUnit {
 		data.Uri.ResponseMessage = uri.ResponseMessage
 
 		var addr string
-		if len(s.Hosts) > 1 && s.balance != nil {
+		if s.Hosts == nil || len(s.Hosts) == 0 {
+			addr = uri.Host
+		} else if len(s.Hosts) > 1 && s.balance != nil {
 			addr = s.balance.next()
 		} else {
 			for k := range s.Hosts {
@@ -103,6 +100,7 @@ func (s *RouterService) BuildUnit() ware.HandlerUnit {
 				break
 			}
 		}
+
 		data.SetServerHost(addr)
 		return data, nil
 	}

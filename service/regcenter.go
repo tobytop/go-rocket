@@ -64,6 +64,10 @@ func NewLocalCenter(hosts map[string]int, path []*RouterInfo) *LocalCenter {
 	}
 }
 
+func NewLocalCenterNoHost(path []*RouterInfo) *LocalCenter {
+	return NewLocalCenter(nil, path)
+}
+
 func getTypeName(objType reflect.Type) string {
 	if objType.Kind() == reflect.Ptr {
 		return objType.Elem().String()
