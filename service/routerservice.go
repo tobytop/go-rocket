@@ -112,7 +112,7 @@ func (s *RouterService) BuildUnit() ware.HandlerUnit {
 		if len(s.Hosts) > 1 && s.balance != nil {
 			host.addr = s.balance.next()
 		} else {
-			for k, _ := range s.Hosts {
+			for k := range s.Hosts {
 				host.addr = k
 				break
 			}
