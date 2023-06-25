@@ -17,7 +17,7 @@ type MetaData struct {
 	Req        *http.Request
 	Uri        *URI
 	Codec      string
-	Params     map[string]any
+	Payload    map[string]any
 	Header     *metadata.MD
 	serverhost string
 }
@@ -67,7 +67,7 @@ func (m *MetaData) GetHost() string {
 func (m *MetaData) FormatAll() error {
 	err := m.formatUri()
 	if err == nil {
-		m.FormatParams()
+		m.FormatPayload()
 		m.FormatHeader()
 	}
 	return err
@@ -86,25 +86,25 @@ func (m *MetaData) formatUri() error {
 	return nil
 }
 
-func (m *MetaData) FormatParams() {
+func (m *MetaData) FormatPayload() {
 	m.Req.ParseForm()
-	params := make(map[string]any)
+	payload := make(map[string]any)
 	for key, v := range m.Req.Form {
 		var data map[string]any
 		err := json.Unmarshal([]byte(key), &data)
 		if err == nil {
 			for kk, vv := range data {
-				params[kk] = vv
+				payload[kk] = vv
 			}
 		} else {
 			if len(v) > 0 {
-				params[key] = v[0]
+				payload[key] = v[0]
 			} else {
-				params[key] = ""
+				payload[key] = ""
 			}
 		}
 	}
-	m.Params = params
+	m.Payload = payload
 }
 
 func (m *MetaData) ConvertToMessage(dic map[string]proto.Message) (proto.Message, proto.Message) {
@@ -116,7 +116,7 @@ func (m *MetaData) ConvertToMessage(dic map[string]proto.Message) (proto.Message
 	req := reflect.New(reflect.TypeOf(reqIn).Elem()).Interface()
 	res := reflect.New(reflect.TypeOf(resOut).Elem()).Interface()
 
-	err := mapstructure.Decode(m.Params, &req)
+	err := mapstructure.Decode(m.Payload, &req)
 	if err != nil {
 		fmt.Println(err)
 		return nil, nil
@@ -128,7 +128,7 @@ func (m *MetaData) ConvertToMessage(dic map[string]proto.Message) (proto.Message
 }
 
 func (m *MetaData) FormatHeader() {
-	if contenttype, ok := m.Req.Header["Response-Content-Type"]; ok && len(contenttype) > 0 {
+	if contenttype, ok := m.Req.Header["Request-Content-Type"]; ok && len(contenttype) > 0 {
 		m.Codec = contenttype[0]
 	} else {
 		m.Codec = "application/proto"

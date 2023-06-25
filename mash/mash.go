@@ -68,7 +68,7 @@ func (m *Mash) Listen() error {
 		)
 		switch data.Codec {
 		case "application/json":
-			in = data.Params
+			in = data.Payload
 			err = gconn.Invoke(context, data.Uri.GetFullMethod(), in, &out, callopt)
 			return out, err
 		default:
