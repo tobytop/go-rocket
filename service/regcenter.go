@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -30,8 +32,8 @@ type RouterInfo struct {
 	PackageName string
 	ServiceName string
 	Method      string
-	InMessage   any
-	OutMessage  any
+	InMessage   proto.Message
+	OutMessage  proto.Message
 }
 
 type Router struct {
@@ -53,8 +55,8 @@ func NewLocalCenter(hosts map[string]int, path []*RouterInfo) *LocalCenter {
 				ServiceName: v.ServiceName,
 			},
 		}
-		p.RequestMessage = getTypeName(reflect.TypeOf(v.InMessage))
-		p.ResponseMessage = getTypeName(reflect.TypeOf(v.OutMessage))
+		p.RequestMessage = reflect.TypeOf(v.InMessage).Elem().String()
+		p.ResponseMessage = reflect.TypeOf(v.OutMessage).Elem().String()
 		key := fmt.Sprintf("/%v.%v/%v", strings.ToLower(v.PackageName), strings.ToLower(v.ServiceName), strings.ToLower(v.Method))
 		descriptors[key] = p
 	}
@@ -69,14 +71,6 @@ func NewLocalCenter(hosts map[string]int, path []*RouterInfo) *LocalCenter {
 
 func NewLocalCenterNoHost(path []*RouterInfo) *LocalCenter {
 	return NewLocalCenter(nil, path)
-}
-
-func getTypeName(objType reflect.Type) string {
-	if objType.Kind() == reflect.Ptr {
-		return objType.Elem().String()
-	} else {
-		return objType.String()
-	}
 }
 
 func (l *LocalCenter) LoadDic() (map[string]int, map[string]*metadata.Descriptor) {
