@@ -15,7 +15,7 @@ const (
 )
 
 type RegCenter interface {
-	LoadDic() (map[string]int, map[string]*metadata.URI)
+	LoadDic() (map[string]int, map[string]*metadata.Descriptor)
 	Watcher(*RegContext)
 }
 
@@ -35,8 +35,8 @@ type RouterInfo struct {
 }
 
 type Router struct {
-	Paths map[string]*metadata.URI
-	Hosts map[string]int
+	Descriptors map[string]*metadata.Descriptor
+	Hosts       map[string]int
 }
 
 type LocalCenter struct {
@@ -44,22 +44,25 @@ type LocalCenter struct {
 }
 
 func NewLocalCenter(hosts map[string]int, path []*RouterInfo) *LocalCenter {
-	paths := make(map[string]*metadata.URI)
+	descriptors := make(map[string]*metadata.Descriptor)
 	for _, v := range path {
-		p := new(metadata.URI)
-		p.Method = v.Method
-		p.PackageName = v.PackageName
-		p.ServiceName = v.ServiceName
+		p := &metadata.Descriptor{
+			URI: &metadata.URI{
+				Method:      v.Method,
+				PackageName: v.PackageName,
+				ServiceName: v.ServiceName,
+			},
+		}
 		p.RequestMessage = getTypeName(reflect.TypeOf(v.InMessage))
 		p.ResponseMessage = getTypeName(reflect.TypeOf(v.OutMessage))
 		key := fmt.Sprintf("/%v.%v/%v", strings.ToLower(v.PackageName), strings.ToLower(v.ServiceName), strings.ToLower(v.Method))
-		paths[key] = p
+		descriptors[key] = p
 	}
 
 	return &LocalCenter{
 		Router: &Router{
-			Paths: paths,
-			Hosts: hosts,
+			Descriptors: descriptors,
+			Hosts:       hosts,
 		},
 	}
 }
@@ -76,8 +79,8 @@ func getTypeName(objType reflect.Type) string {
 	}
 }
 
-func (l *LocalCenter) LoadDic() (map[string]int, map[string]*metadata.URI) {
-	return l.Hosts, l.Paths
+func (l *LocalCenter) LoadDic() (map[string]int, map[string]*metadata.Descriptor) {
+	return l.Hosts, l.Descriptors
 }
 
 func (l *LocalCenter) Watcher(sender *RegContext) {

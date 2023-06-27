@@ -15,7 +15,7 @@ import (
 
 type MetaData struct {
 	Req        *http.Request
-	Uri        *URI
+	Descriptor *Descriptor
 	Codec      string
 	Payload    map[string]any
 	Header     *metadata.MD
@@ -44,12 +44,27 @@ func (err *ErrorMeta) PrintErrorByHttp(writer http.ResponseWriter) {
 }
 
 type URI struct {
-	PackageName     string
-	ServiceName     string
-	Method          string
+	PackageName string
+	ServiceName string
+	Method      string
+	Host        string
+}
+
+type Descriptor struct {
+	*URI
 	RequestMessage  string
 	ResponseMessage string
-	Host            string
+}
+
+func (d *Descriptor) convertToMessage(dic map[string]proto.Message) (proto.Message, proto.Message) {
+	reqIn := dic[d.RequestMessage]
+	resOut := dic[d.ResponseMessage]
+	req := reflect.New(reflect.TypeOf(reqIn).Elem()).Interface()
+	res := reflect.New(reflect.TypeOf(resOut).Elem()).Interface()
+
+	in := req.(proto.Message)
+	out := res.(proto.Message)
+	return in, out
 }
 
 func (u *URI) GetFullMethod() string {
@@ -77,10 +92,12 @@ func (m *MetaData) formatUri() error {
 	if len(st) != 4 {
 		return errors.New("url is wrong")
 	}
-	m.Uri = &URI{
-		PackageName: st[1],
-		ServiceName: st[2],
-		Method:      st[3],
+	m.Descriptor = &Descriptor{
+		URI: &URI{
+			PackageName: st[1],
+			ServiceName: st[2],
+			Method:      st[3],
+		},
 	}
 	return nil
 }
@@ -106,24 +123,19 @@ func (m *MetaData) FormatPayload() {
 	m.Payload = payload
 }
 
-func (m *MetaData) ConvertToMessage(dic map[string]proto.Message) (proto.Message, proto.Message) {
+func (m *MetaData) GetProtoMessage(dic map[string]proto.Message) (proto.Message, proto.Message) {
 	if len(dic) == 0 {
 		return nil, nil
 	}
-	reqIn := dic[m.Uri.RequestMessage]
-	resOut := dic[m.Uri.ResponseMessage]
-	req := reflect.New(reflect.TypeOf(reqIn).Elem()).Interface()
-	res := reflect.New(reflect.TypeOf(resOut).Elem()).Interface()
+	reqIn, resOut := m.Descriptor.convertToMessage(dic)
+	err := mapstructure.Decode(m.Payload, reqIn)
 
-	err := mapstructure.Decode(m.Payload, &req)
 	if err != nil {
 		fmt.Println(err)
 		return nil, nil
 	}
 
-	in := req.(proto.Message)
-	out := res.(proto.Message)
-	return in, out
+	return reqIn, resOut
 }
 
 func (m *MetaData) FormatHeader() {

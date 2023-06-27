@@ -26,10 +26,10 @@ func BuilderBalance(balancetype int) RegBuilder {
 func BuilderRegCenter(reg RegCenter) RegBuilder {
 	return func(rs *RouterService) {
 		log.Println("registor router")
-		hosts, path := reg.LoadDic()
+		hosts, descriptors := reg.LoadDic()
 		rs.Router = &Router{
-			Paths: path,
-			Hosts: hosts,
+			Descriptors: descriptors,
+			Hosts:       hosts,
 		}
 		rs.reg = reg
 		log.Println("end registor router")
@@ -78,20 +78,20 @@ func BuildService(builders ...RegBuilder) *RouterService {
 
 func (s *RouterService) BuildUnit() ware.HandlerUnit {
 	return func(ctx context.Context, data *metadata.MetaData) (response any, err error) {
-		uri, ok := s.Paths[data.Uri.GetFullMethod()]
+		descriptor, ok := s.Descriptors[data.Descriptor.GetFullMethod()]
 		if !ok {
 			return nil, errors.New("no router here")
 		}
 
-		data.Uri.Method = uri.Method
-		data.Uri.PackageName = uri.PackageName
-		data.Uri.ServiceName = uri.ServiceName
-		data.Uri.RequestMessage = uri.RequestMessage
-		data.Uri.ResponseMessage = uri.ResponseMessage
+		data.Descriptor.Method = descriptor.Method
+		data.Descriptor.PackageName = descriptor.PackageName
+		data.Descriptor.ServiceName = descriptor.ServiceName
+		data.Descriptor.RequestMessage = descriptor.RequestMessage
+		data.Descriptor.ResponseMessage = descriptor.ResponseMessage
 
 		var addr string
 		if s.Hosts == nil || len(s.Hosts) == 0 {
-			addr = uri.Host
+			addr = descriptor.Host
 		} else if len(s.Hosts) > 1 && s.balance != nil {
 			addr = s.balance.next()
 		} else {

@@ -69,11 +69,11 @@ func (m *Mash) Listen() error {
 		switch data.Codec {
 		case "application/json":
 			in = data.Payload
-			err = gconn.Invoke(context, data.Uri.GetFullMethod(), in, &out, callopt)
+			err = gconn.Invoke(context, data.Descriptor.GetFullMethod(), in, &out, callopt)
 			return out, err
 		default:
-			in, out = data.ConvertToMessage(m.routerservice.GetDic())
-			err = gconn.Invoke(context, data.Uri.GetFullMethod(), in, out, callopt)
+			in, out = data.GetProtoMessage(m.routerservice.GetDic())
+			err = gconn.Invoke(context, data.Descriptor.GetFullMethod(), in, out, callopt)
 			return out, err
 		}
 	}
