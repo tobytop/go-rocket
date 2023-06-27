@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"strings"
 
 	"go-rocket/metadata"
 	"go-rocket/ware"
@@ -78,7 +79,9 @@ func BuildService(builders ...RegBuilder) *RouterService {
 
 func (s *RouterService) BuildUnit() ware.HandlerUnit {
 	return func(ctx context.Context, data *metadata.MetaData) (response any, err error) {
-		descriptor, ok := s.Descriptors[data.Descriptor.GetFullMethod()]
+		key := strings.ToLower(data.Descriptor.GetFullMethod())
+		log.Println(key)
+		descriptor, ok := s.Descriptors[key]
 		if !ok {
 			return nil, errors.New("no router here")
 		}
