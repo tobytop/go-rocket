@@ -32,6 +32,7 @@ type RouterInfo struct {
 	PackageName string
 	ServiceName string
 	Method      string
+	Host        string
 	InMessage   proto.Message
 	OutMessage  proto.Message
 }
@@ -50,6 +51,7 @@ func NewLocalCenter(hosts map[string]int, path []*RouterInfo) *LocalCenter {
 	for _, v := range path {
 		p := &metadata.Descriptor{
 			URI: &metadata.URI{
+				Host:        v.Host,
 				Method:      v.Method,
 				PackageName: v.PackageName,
 				ServiceName: v.ServiceName,
