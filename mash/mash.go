@@ -31,7 +31,7 @@ func NewMash() *Mash {
 
 func (m *Mash) BuliderRouter(builders ...service.RegBuilder) {
 	m.routerservice = service.BuildService(builders...)
-	m.AddMiddlewares(m.routerservice.BuildUnit().WareBuild())
+	m.AddMiddlewares(m.routerservice.MatcherUnit().WareBuild())
 }
 
 func (m *Mash) SetListenPort(port string) {

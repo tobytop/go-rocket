@@ -24,27 +24,27 @@ func BuilderBalance(balancetype int) RegBuilder {
 	}
 }
 
-func BuilderRegCenter(reg RegCenter) RegBuilder {
+func BuilderRegCenter(regcenter RegCenter) RegBuilder {
 	return func(rs *RouterService) {
 		log.Println("registor router")
-		hosts, descriptors := reg.LoadDic()
+		hosts, descriptors := regcenter.LoadDic()
 		rs.Router = &Router{
 			Descriptors: descriptors,
 			Hosts:       hosts,
 		}
-		rs.reg = reg
+		rs.regcenter = regcenter
 		log.Println("end registor router")
 	}
 }
 
-func BuildRegMessage(regs ...proto.Message) RegBuilder {
+func BuildRegMessage(protomessages ...proto.Message) RegBuilder {
 	return func(rs *RouterService) {
 		log.Println("registor grpc message")
 		regtable := make(map[string]proto.Message)
-		for _, reg := range regs {
-			typeOfMessage := reflect.TypeOf(reg)
+		for _, proto := range protomessages {
+			typeOfMessage := reflect.TypeOf(proto)
 			typeOfMessage = typeOfMessage.Elem()
-			regtable[typeOfMessage.String()] = reg
+			regtable[typeOfMessage.String()] = proto
 		}
 		rs.regtable = regtable
 		log.Println("end registor grpc message")
@@ -53,9 +53,9 @@ func BuildRegMessage(regs ...proto.Message) RegBuilder {
 
 type RouterService struct {
 	*Router
-	regtable map[string]proto.Message
-	balance  Balance
-	reg      RegCenter
+	regtable  map[string]proto.Message
+	balance   Balance
+	regcenter RegCenter
 }
 
 func (s *RouterService) GetDic() map[string]proto.Message {
@@ -77,8 +77,8 @@ func BuildService(builders ...RegBuilder) *RouterService {
 	return sevice
 }
 
-func (s *RouterService) BuildUnit() ware.HandlerUnit {
-	return func(ctx context.Context, data *metadata.MetaData) (response any, err error) {
+func (s *RouterService) MatcherUnit() ware.HandlerUnit {
+	return func(ctx context.Context, data *metadata.MetaData) (any, error) {
 		key := strings.ToLower(data.Descriptor.GetFullMethod())
 		log.Println(key)
 		descriptor, ok := s.Descriptors[key]
@@ -110,7 +110,7 @@ func (s *RouterService) BuildUnit() ware.HandlerUnit {
 }
 
 func (s *RouterService) Watcher(w http.ResponseWriter, r *http.Request) {
-	s.reg.Watcher(&RegContext{
+	s.regcenter.Watcher(&RegContext{
 		Router:    s.Router,
 		AfterLoad: s.balance,
 		Writer:    w,

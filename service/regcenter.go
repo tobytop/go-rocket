@@ -59,7 +59,8 @@ func NewLocalCenter(hosts map[string]int, path []*RouterInfo) *LocalCenter {
 		}
 		p.RequestMessage = reflect.TypeOf(v.InMessage).Elem().String()
 		p.ResponseMessage = reflect.TypeOf(v.OutMessage).Elem().String()
-		key := fmt.Sprintf("/%v.%v/%v", strings.ToLower(v.PackageName), strings.ToLower(v.ServiceName), strings.ToLower(v.Method))
+		key := fmt.Sprintf("/%v.%v/%v", v.PackageName, v.ServiceName, v.Method)
+		key = strings.ToLower(key)
 		descriptors[key] = p
 	}
 
