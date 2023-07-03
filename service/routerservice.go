@@ -37,7 +37,7 @@ func BuilderRegCenter(regcenter RegCenter) RegBuilder {
 	}
 }
 
-func BuildRegMessage(protomessages ...proto.Message) RegBuilder {
+func BuildRegisterMessage(protomessages ...proto.Message) RegBuilder {
 	return func(rs *RouterService) {
 		log.Println("registor grpc message")
 		regtable := make(map[string]proto.Message)

@@ -3,6 +3,7 @@ package mash
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go-rocket/mash/codec"
 	meta "go-rocket/metadata"
@@ -47,6 +48,11 @@ func (m *Mash) AddAfterHandle(afterware ware.AfterUnit) {
 }
 
 func (m *Mash) Listen() error {
+	//check the proto message table
+	dic := m.routerservice.GetDic()
+	if len(dic) == 0 {
+		panic(errors.New("no proto message"))
+	}
 	m.handler = func(ctx context.Context, data *meta.MetaData) (response any, err error) {
 		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs[data.Codec]), grpc.WaitForReady(false))
 		//connection by grpc
@@ -72,7 +78,7 @@ func (m *Mash) Listen() error {
 			err = gconn.Invoke(context, data.Descriptor.GetFullMethod(), in, &out, callopt)
 			return out, err
 		default:
-			in, out = data.GetProtoMessage(m.routerservice.GetDic())
+			in, out = data.GetProtoMessage(dic)
 			err = gconn.Invoke(context, data.Descriptor.GetFullMethod(), in, out, callopt)
 			return out, err
 		}
@@ -116,7 +122,7 @@ func (m *Mash) Listen() error {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(b)
 	})
-
+	//reg center watcher hook
 	mux.HandleFunc("/watcher", m.routerservice.Watcher)
 	return http.ListenAndServe(m.httpPort, mux)
 }

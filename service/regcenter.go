@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"go-rocket/metadata"
 	"net/http"
@@ -29,12 +30,10 @@ type RegContext struct {
 }
 
 type RouterInfo struct {
-	PackageName string
-	ServiceName string
-	Method      string
-	Host        string
-	InMessage   proto.Message
-	OutMessage  proto.Message
+	Path       string
+	Host       string
+	InMessage  proto.Message
+	OutMessage proto.Message
 }
 
 type Router struct {
@@ -46,20 +45,24 @@ type LocalCenter struct {
 	*Router
 }
 
-func NewLocalCenter(hosts map[string]int, path []*RouterInfo) *LocalCenter {
+func NewLocalCenter(hosts map[string]int, info []*RouterInfo) *LocalCenter {
 	descriptors := make(map[string]*metadata.Descriptor)
-	for _, v := range path {
+	for _, v := range info {
+		routerinfo := strings.Split(v.Path, "/")
+		if len(routerinfo) != 3 {
+			panic(errors.New("wrong url pattern"))
+		}
 		p := &metadata.Descriptor{
 			URI: &metadata.URI{
 				Host:        v.Host,
-				Method:      v.Method,
-				PackageName: v.PackageName,
-				ServiceName: v.ServiceName,
+				Method:      routerinfo[2],
+				PackageName: routerinfo[0],
+				ServiceName: routerinfo[1],
 			},
 		}
 		p.RequestMessage = reflect.TypeOf(v.InMessage).Elem().String()
 		p.ResponseMessage = reflect.TypeOf(v.OutMessage).Elem().String()
-		key := fmt.Sprintf("/%v.%v/%v", v.PackageName, v.ServiceName, v.Method)
+		key := fmt.Sprintf("/%v.%v/%v", p.PackageName, p.ServiceName, p.Method)
 		key = strings.ToLower(key)
 		descriptors[key] = p
 	}
