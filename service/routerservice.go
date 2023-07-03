@@ -58,8 +58,8 @@ type RouterService struct {
 	regcenter RegCenter
 }
 
-func (s *RouterService) GetDic() map[string]proto.Message {
-	return s.regtable
+func (rs *RouterService) GetDic() map[string]proto.Message {
+	return rs.regtable
 }
 
 func BuildService(builders ...RegBuilder) *RouterService {
@@ -77,11 +77,11 @@ func BuildService(builders ...RegBuilder) *RouterService {
 	return sevice
 }
 
-func (s *RouterService) MatcherUnit() ware.HandlerUnit {
+func (rs *RouterService) MatcherUnit() ware.HandlerUnit {
 	return func(ctx context.Context, data *metadata.MetaData) (any, error) {
 		key := strings.ToLower(data.Descriptor.GetFullMethod())
 		log.Println(key)
-		descriptor, ok := s.Descriptors[key]
+		descriptor, ok := rs.Descriptors[key]
 		if !ok {
 			return nil, errors.New("no router here")
 		}
@@ -93,12 +93,12 @@ func (s *RouterService) MatcherUnit() ware.HandlerUnit {
 		data.Descriptor.ResponseMessage = descriptor.ResponseMessage
 
 		var addr string
-		if s.Hosts == nil || len(s.Hosts) == 0 {
+		if rs.Hosts == nil || len(rs.Hosts) == 0 {
 			addr = descriptor.Host
-		} else if len(s.Hosts) > 1 && s.balance != nil {
-			addr = s.balance.next()
+		} else if len(rs.Hosts) > 1 && rs.balance != nil {
+			addr = rs.balance.next()
 		} else {
-			for k := range s.Hosts {
+			for k := range rs.Hosts {
 				addr = k
 				break
 			}
@@ -109,10 +109,10 @@ func (s *RouterService) MatcherUnit() ware.HandlerUnit {
 	}
 }
 
-func (s *RouterService) Watcher(w http.ResponseWriter, r *http.Request) {
-	s.regcenter.Watcher(&RegContext{
-		Router:    s.Router,
-		AfterLoad: s.balance,
+func (rs *RouterService) Watcher(w http.ResponseWriter, r *http.Request) {
+	rs.regcenter.Watcher(&RegContext{
+		Router:    rs.Router,
+		AfterLoad: rs.balance,
 		Writer:    w,
 		Req:       r,
 	})
