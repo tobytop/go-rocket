@@ -3,6 +3,8 @@ package ware
 import (
 	"context"
 	"go-rocket/metadata"
+
+	"google.golang.org/grpc"
 )
 
 type HandlerUnit func(ctx context.Context, data *metadata.MetaData) (any, error)
@@ -22,3 +24,5 @@ func (e HandlerUnit) WareBuild() Middleware {
 type Middleware func(HandlerUnit) HandlerUnit
 
 type AfterUnit func(data *metadata.AfterMetaData) (any, error)
+
+type GrpcWare func(grpc.StreamHandler) grpc.StreamHandler

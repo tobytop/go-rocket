@@ -10,7 +10,7 @@ import (
 
 func main() {
 	//fmt.Println(reflect.TypeOf(&pb.HelloRequest{}).Elem().PkgPath())
-	mash := mash.NewMash()
+	mash := mash.NewHttpMash()
 	mash.BuliderRouter(
 		service.BuildRegisterMessage(&pb.HelloRequest{}, &pb.HelloReply{}),
 		service.BuilderRegCenter(service.NewLocalCenterNoHost([]*service.RouterInfo{

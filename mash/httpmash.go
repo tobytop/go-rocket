@@ -16,7 +16,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type Mash struct {
+type HttpMash struct {
 	httpPort      string
 	routerservice *service.RouterService
 	handler       ware.HandlerUnit
@@ -24,30 +24,30 @@ type Mash struct {
 	afterhandler  ware.AfterUnit
 }
 
-func NewMash() *Mash {
-	return &Mash{
+func NewHttpMash() *HttpMash {
+	return &HttpMash{
 		middlewares: make([]ware.Middleware, 0),
 	}
 }
 
-func (m *Mash) BuliderRouter(builders ...service.RegBuilder) {
+func (m *HttpMash) BuliderRouter(builders ...service.RegBuilder) {
 	m.routerservice = service.BuildService(builders...)
 	m.AddMiddlewares(m.routerservice.MatcherUnit().WareBuild())
 }
 
-func (m *Mash) SetListenPort(port string) {
+func (m *HttpMash) SetListenPort(port string) {
 	m.httpPort = port
 }
 
-func (m *Mash) AddMiddlewares(middleware ...ware.Middleware) {
+func (m *HttpMash) AddMiddlewares(middleware ...ware.Middleware) {
 	m.middlewares = append(m.middlewares, middleware...)
 }
 
-func (m *Mash) AddAfterHandle(afterware ware.AfterUnit) {
+func (m *HttpMash) AddAfterHandle(afterware ware.AfterUnit) {
 	m.afterhandler = afterware
 }
 
-func (m *Mash) Listen() error {
+func (m *HttpMash) Listen() error {
 	//check the proto message table
 	dic := m.routerservice.GetDic()
 	if len(dic) == 0 {
@@ -127,7 +127,7 @@ func (m *Mash) Listen() error {
 	return http.ListenAndServe(m.httpPort, mux)
 }
 
-func (g *Mash) ListenWithPort(port string) error {
-	g.SetListenPort(port)
-	return g.Listen()
+func (m *HttpMash) ListenWithPort(port string) error {
+	m.SetListenPort(port)
+	return m.Listen()
 }
