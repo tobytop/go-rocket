@@ -17,7 +17,7 @@ import (
 )
 
 type HttpMash struct {
-	httpPort      string
+	port          string
 	routerservice *service.RouterService
 	handler       ware.HandlerUnit
 	middlewares   []ware.Middleware
@@ -31,12 +31,16 @@ func NewHttpMash() *HttpMash {
 }
 
 func (m *HttpMash) BuliderRouter(builders ...service.RegBuilder) {
-	m.routerservice = service.BuildService(builders...)
+	m.BindRouter(service.BuildService(builders...))
+}
+
+func (m *HttpMash) BindRouter(routerservice *service.RouterService) {
+	m.routerservice = routerservice
 	m.AddMiddlewares(m.routerservice.MatcherUnit().WareBuild())
 }
 
 func (m *HttpMash) SetListenPort(port string) {
-	m.httpPort = port
+	m.port = port
 }
 
 func (m *HttpMash) AddMiddlewares(middleware ...ware.Middleware) {
@@ -102,7 +106,6 @@ func (m *HttpMash) Listen() error {
 			errmsg.PrintErrorByHttp(w)
 			return
 		}
-
 		result, err := m.handler(ctx, data)
 		if err != nil {
 			errmsg := meta.NewError(err)
@@ -124,7 +127,7 @@ func (m *HttpMash) Listen() error {
 	})
 	//reg center watcher hook
 	mux.HandleFunc("/watcher", m.routerservice.Watcher)
-	return http.ListenAndServe(m.httpPort, mux)
+	return http.ListenAndServe(m.port, mux)
 }
 
 func (m *HttpMash) ListenWithPort(port string) error {

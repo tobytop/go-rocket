@@ -4,24 +4,22 @@ import (
 	pb "go-rocket/example/proto/hello"
 	"go-rocket/mash"
 	"go-rocket/service"
-
-	"log"
 )
 
 func main() {
 	//fmt.Println(reflect.TypeOf(&pb.HelloRequest{}).Elem().PkgPath())
-	mash := mash.NewHttpMash()
-	mash.BuliderRouter(
-		service.BuildRegisterMessage(&pb.HelloRequest{}, &pb.HelloReply{}),
-		service.BuilderRegCenter(service.NewLocalCenterNoHost([]*service.RouterInfo{
-			{
-				Path:       "proto/Greeter/SayHello",
-				Host:       "127.0.0.1:50051",
-				InMessage:  &pb.HelloRequest{},
-				OutMessage: &pb.HelloReply{},
-			},
-		})),
-	)
+	// mash := mash.NewHttpMash()
+	// mash.BuliderRouter(
+	// 	service.BuildRegisterMessage(&pb.HelloRequest{}, &pb.HelloReply{}),
+	// 	service.BuilderRegCenter(service.NewLocalCenterNoHost([]*service.RouterInfo{
+	// 		{
+	// 			Path:       "proto/Greeter/SayHello",
+	// 			Host:       "127.0.0.1:50051",
+	// 			InMessage:  &pb.HelloRequest{},
+	// 			OutMessage: &pb.HelloReply{},
+	// 		},
+	// 	})),
+	// )
 	// mash.BuliderRouter(
 	// 	service.BuilderBalance(service.WeightRobin),
 	// 	service.BuildRegisterMessage(&pb.HelloRequest{}, &pb.HelloReply{}),
@@ -34,8 +32,18 @@ func main() {
 	// 			InMessage:  &pb.HelloRequest{},
 	// 			OutMessage: &pb.HelloReply{},
 	// 		}})))
-	err := mash.ListenWithPort(":9000")
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+	// err := mash.ListenWithPort(":9000")
+	// if err != nil {
+	// 	log.Fatal("ListenAndServe: ", err)
+	// }
+	mash.BuildHttpAndGrpcMash(":9000", ":9008",
+		service.BuildRegisterMessage(&pb.HelloRequest{}, &pb.HelloReply{}),
+		service.BuilderRegCenter(service.NewLocalCenterNoHost([]*service.RouterInfo{
+			{
+				Path:       "proto/Greeter/SayHello",
+				Host:       "127.0.0.1:50051",
+				InMessage:  &pb.HelloRequest{},
+				OutMessage: &pb.HelloReply{},
+			},
+		})))
 }
