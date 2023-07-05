@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "test/";
+
+service NewGreeter {
+    rpc SayHello (TestRequest) returns (TestReply) {}
+  }
+  
+  message TestRequest {
+    string name = 1;
+  }
+  
+  message TestReply {
+    string message = 1;
+  }

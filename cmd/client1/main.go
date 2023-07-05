@@ -3,22 +3,26 @@ package main
 import (
 	"context"
 	"fmt"
-	pb "go-rocket/example/proto/hello"
+	pb "go-rocket/example/proto/test"
 	"log"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 )
 
 type server struct {
-	*pb.UnimplementedGreeterServer
+	*pb.UnimplementedNewGreeterServer
 }
 
-func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	fmt.Println(in)
+func (s *server) SayHello(ctx context.Context, in *pb.TestRequest) (*pb.TestReply, error) {
+	md, _ := metadata.FromIncomingContext(ctx)
+	fmt.Println(md)
+	time.Sleep(800 * time.Millisecond)
 	// 创建一个HelloReply消息，设置Message字段，然后直接返回。
-	return &pb.HelloReply{Message: "Hello 1" + in.Name}, nil
+	return &pb.TestReply{Message: "tests 1" + in.Name}, nil
 }
 
 func main() {
@@ -31,7 +35,7 @@ func main() {
 	s := grpc.NewServer()
 
 	// 注册Greeter服务
-	pb.RegisterGreeterServer(s, new(server))
+	pb.RegisterNewGreeterServer(s, new(server))
 
 	// 往grpc服务端注册反射服务
 	reflection.Register(s)

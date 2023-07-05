@@ -66,18 +66,18 @@ func (m *GrpcMash) AddMiddlewares(middleware ...ware.Middleware) {
 }
 
 func (m *GrpcMash) transhandler() grpc.StreamHandler {
-	return func(srv interface{}, stream grpc.ServerStream) error {
-		path, ok := grpc.MethodFromServerStream(stream)
+	return func(srv interface{}, serverStream grpc.ServerStream) error {
+		path, ok := grpc.MethodFromServerStream(serverStream)
 		if !ok {
 			return errors.New("path is wrong")
 		}
-		incomingCtx := stream.Context()
+		incomingCtx := serverStream.Context()
 		clientCtx, clientCancel := context.WithCancel(incomingCtx)
 		defer clientCancel()
 
 		header, _ := metadata.FromIncomingContext(clientCtx)
 		data := buildMeta(path)
-		if data != nil {
+		if data == nil {
 			return errors.New(path)
 		}
 		data.Header = &header
@@ -95,14 +95,16 @@ func (m *GrpcMash) transhandler() grpc.StreamHandler {
 		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs["application/proto"]), grpc.WaitForReady(false))
 		gconn, err := grpc.Dial(handlerdata.GetHost(), opt, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 		clientStream, err := grpc.NewClientStream(newCtx, clientStreamDescForProxying, gconn, path)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
-		s2cErrChan := m.transformtoserver(clientStream, stream)
-		c2sErrChan := m.transformtoclient(stream, clientStream)
+		s2cErrChan := m.forwardServerToClient(serverStream, clientStream)
+		c2sErrChan := m.forwardClientToServer(clientStream, serverStream)
 		for i := 0; i < 2; i++ {
 			select {
 			case s2cErr := <-s2cErrChan:
@@ -121,7 +123,7 @@ func (m *GrpcMash) transhandler() grpc.StreamHandler {
 				// This happens when the clientStream has nothing else to offer (io.EOF), returned a gRPC error. In those two
 				// cases we may have received Trailers as part of the call. In case of other errors (stream closed) the trailers
 				// will be nil.
-				stream.SetTrailer(clientStream.Trailer())
+				serverStream.SetTrailer(clientStream.Trailer())
 				// c2sErr will contain RPC error from client code. If not io.EOF return the RPC error as server stream error.
 				if c2sErr != io.EOF {
 					return c2sErr
@@ -129,31 +131,18 @@ func (m *GrpcMash) transhandler() grpc.StreamHandler {
 				return nil
 			}
 		}
-		return nil
+		return status.Errorf(codes.Internal, "gRPC proxying should never reach this stage.")
 	}
 }
 
-func (m *GrpcMash) transformtoserver(src grpc.ClientStream, dst grpc.ServerStream) chan error {
+func (m *GrpcMash) forwardClientToServer(src grpc.ClientStream, dst grpc.ServerStream) chan error {
 	ret := make(chan error, 1)
 	go func() {
 		f := &emptypb.Empty{}
-		for i := 0; ; i++ {
+		for {
 			if err := src.RecvMsg(f); err != nil {
 				ret <- err
-			}
-			if i == 0 {
-				// This is a bit of a hack, but client to server headers are only readable after first client msg is
-				// received but must be written to server stream before the first msg is flushed.
-				// This is the only place to do it nicely.
-				md, err := src.Header()
-				if err != nil {
-					ret <- err
-					break
-				}
-				if err := dst.SendHeader(md); err != nil {
-					ret <- err
-					break
-				}
+				break
 			}
 			if err := dst.SendMsg(f); err != nil {
 				ret <- err
@@ -164,11 +153,11 @@ func (m *GrpcMash) transformtoserver(src grpc.ClientStream, dst grpc.ServerStrea
 	return ret
 }
 
-func (m *GrpcMash) transformtoclient(src grpc.ServerStream, dst grpc.ClientStream) chan error {
+func (m *GrpcMash) forwardServerToClient(src grpc.ServerStream, dst grpc.ClientStream) chan error {
 	ret := make(chan error, 1)
 	go func() {
 		f := &emptypb.Empty{}
-		for i := 0; ; i++ {
+		for {
 			if err := src.RecvMsg(f); err != nil {
 				ret <- err // this can be io.EOF which is happy case
 				break
@@ -183,14 +172,13 @@ func (m *GrpcMash) transformtoclient(src grpc.ServerStream, dst grpc.ClientStrea
 }
 
 func buildMeta(path string) *meta.MetaData {
-	str := strings.Split(path, "/")
+	str := strings.Split(path[1:], "/")
 	if len(str) != 2 {
 		return nil
 	}
-	log.Println(path)
 	index := strings.LastIndex(str[0], ".")
 	packagename := str[0][:index]
-	servername := str[0][index:]
+	servername := str[0][index+1:]
 	return &meta.MetaData{
 		Descriptor: &meta.Descriptor{
 			URI: &meta.URI{
