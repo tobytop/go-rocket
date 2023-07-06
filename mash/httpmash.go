@@ -9,6 +9,7 @@ import (
 	meta "go-rocket/metadata"
 	"go-rocket/service"
 	"go-rocket/ware"
+	"log"
 	"net/http"
 
 	"google.golang.org/grpc"
@@ -133,4 +134,39 @@ func (m *HttpMash) Listen() error {
 func (m *HttpMash) ListenWithPort(port string) error {
 	m.SetListenPort(port)
 	return m.Listen()
+}
+
+type MashContainer struct {
+	HttpMash *HttpMash
+	GrpcMash *GrpcMash
+}
+
+func NewMashContainer(httpport, grpcport string, builders ...service.RegBuilder) *MashContainer {
+	httpMash := NewHttpMash()
+	grpcMash := NewGrpcMash()
+	router := service.BuildService(builders...)
+	httpMash.BindRouter(router)
+	grpcMash.BindRouter(router)
+	httpMash.port = httpport
+	grpcMash.port = grpcport
+	return &MashContainer{
+		HttpMash: httpMash,
+		GrpcMash: grpcMash,
+	}
+}
+
+func (builder *MashContainer) Listen() {
+	ret := make(chan error)
+	go func() {
+		err := builder.HttpMash.Listen()
+		ret <- err
+	}()
+	go func() {
+		err := builder.GrpcMash.Listen()
+		ret <- err
+	}()
+
+	for e := range ret {
+		log.Fatal("ListenAndServe: ", e)
+	}
 }

@@ -189,26 +189,3 @@ func buildMeta(path string) *meta.MetaData {
 		},
 	}
 }
-
-func BuildHttpAndGrpcMash(httpport, grpcport string, builders ...service.RegBuilder) {
-	httpMash := NewHttpMash()
-	grpcMash := NewGrpcMash()
-	router := service.BuildService(builders...)
-	httpMash.BindRouter(router)
-	grpcMash.BindRouter(router)
-	httpMash.port = httpport
-	grpcMash.port = grpcport
-	ret := make(chan error)
-	go func() {
-		err := httpMash.Listen()
-		ret <- err
-	}()
-	go func() {
-		err := grpcMash.Listen()
-		ret <- err
-	}()
-
-	for e := range ret {
-		log.Fatal("ListenAndServe: ", e)
-	}
-}
