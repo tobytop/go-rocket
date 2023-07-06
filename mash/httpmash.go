@@ -18,7 +18,8 @@ import (
 )
 
 type HttpMash struct {
-	port          string
+	port          string   // mash port and ip
+	headerfilter  []string //use for keep origin header key data from the http request
 	routerservice *service.RouterService
 	handler       ware.HandlerUnit
 	middlewares   []ware.Middleware
@@ -27,8 +28,13 @@ type HttpMash struct {
 
 func NewHttpMash() *HttpMash {
 	return &HttpMash{
-		middlewares: make([]ware.Middleware, 0),
+		middlewares:  make([]ware.Middleware, 0),
+		headerfilter: make([]string, 0),
 	}
+}
+
+func (m *HttpMash) AddHeaderfiler(names ...string) {
+	m.headerfilter = append(m.headerfilter, names...)
 }
 
 func (m *HttpMash) BuliderRouter(builders ...service.RegBuilder) {
@@ -59,7 +65,7 @@ func (m *HttpMash) Listen() error {
 		panic(errors.New("no proto message"))
 	}
 	m.handler = func(ctx context.Context, data *meta.MetaData) (response any, err error) {
-		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs[data.Codec]), grpc.WaitForReady(false))
+		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs["application/proto"]), grpc.WaitForReady(false))
 		//connection by grpc
 		gconn, err := grpc.Dial(data.GetHost(), opt, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
@@ -68,25 +74,17 @@ func (m *HttpMash) Listen() error {
 		}
 
 		//build the grpc metadata
+		//head filter
 		md := metadata.MD{}
+		for _, v := range m.headerfilter {
+			md.Append(v, data.Header.Get(v)...)
+		}
 		context := metadata.NewOutgoingContext(ctx, md)
-		callopt := grpc.Header(data.Header)
 
 		//invoke the server moethod by grpc
-		var (
-			in  any
-			out any
-		)
-		switch data.Codec {
-		case "application/json":
-			in = data.Payload
-			err = gconn.Invoke(context, data.Descriptor.GetFullMethod(), in, &out, callopt)
-			return out, err
-		default:
-			in, out = data.GetProtoMessage(dic)
-			err = gconn.Invoke(context, data.Descriptor.GetFullMethod(), in, out, callopt)
-			return out, err
-		}
+		in, out := data.GetProtoMessage(dic)
+		err = gconn.Invoke(context, data.Descriptor.GetFullMethod(), in, out)
+		return out, err
 	}
 
 	for _, v := range m.middlewares {

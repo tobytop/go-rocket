@@ -25,7 +25,7 @@ func (s *server) SayHello(ctx context.Context, in *pb1.HelloRequest) (*pb1.Hello
 	defer conn.Close()
 	c := pb2.NewNewGreeterClient(conn)
 	// 创建一个HelloReply消息，设置Message字段，然后直接返回。
-	md := metadata.MD{}
+	md, _ := metadata.FromIncomingContext(ctx)
 	log.Println(md)
 	reply, err := c.SayHello(metadata.NewOutgoingContext(ctx, md), &pb2.TestRequest{Name: in.Name})
 	if err != nil {

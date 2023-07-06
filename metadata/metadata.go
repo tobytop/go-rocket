@@ -16,7 +16,6 @@ import (
 type MetaData struct {
 	Req        *http.Request
 	Descriptor *Descriptor
-	Codec      string
 	Payload    map[string]any
 	Header     *metadata.MD
 	serverhost string
@@ -90,7 +89,7 @@ func (m *MetaData) FormatAll() error {
 func (m *MetaData) formatUri() error {
 	st := strings.Split(m.Req.URL.Path, "/")
 	if len(st) != 4 {
-		return errors.New("url is wrong")
+		return errors.New(m.Req.URL.Path + " is wrong url")
 	}
 	m.Descriptor = &Descriptor{
 		URI: &URI{
@@ -139,10 +138,5 @@ func (m *MetaData) GetProtoMessage(dic map[string]proto.Message) (proto.Message,
 }
 
 func (m *MetaData) FormatHeader() {
-	if contenttype, ok := m.Req.Header["Request-Content-Type"]; ok && len(contenttype) > 0 {
-		m.Codec = contenttype[0]
-	} else {
-		m.Codec = "application/proto"
-	}
 	m.Header = (*metadata.MD)(&m.Req.Header)
 }
