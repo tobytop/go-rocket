@@ -45,7 +45,7 @@ type LocalCenter struct {
 	*Router
 }
 
-func NewLocalCenter(hosts map[string]int, info []*RouterInfo) *LocalCenter {
+func NewLocalCenter(hosts map[string]int, info []*RouterInfo) RegCenter {
 	descriptors := make(map[string]*metadata.Descriptor)
 	for _, v := range info {
 		routerinfo := strings.Split(v.Path, "/")
@@ -75,7 +75,7 @@ func NewLocalCenter(hosts map[string]int, info []*RouterInfo) *LocalCenter {
 	}
 }
 
-func NewLocalCenterNoHost(path []*RouterInfo) *LocalCenter {
+func NewLocalCenterNoHost(path []*RouterInfo) RegCenter {
 	return NewLocalCenter(nil, path)
 }
 

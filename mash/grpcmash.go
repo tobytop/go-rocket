@@ -89,7 +89,7 @@ func (m *GrpcMash) transhandler() grpc.StreamHandler {
 		if !ok {
 			return errors.New("the metadata is wrong")
 		}
-		newCtx := metadata.NewOutgoingContext(clientCtx, data.Header.Copy())
+		newCtx := metadata.NewOutgoingContext(clientCtx, handlerdata.Header.Copy())
 
 		//connection by grpc
 		opt := grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.DefaultGRPCCodecs["application/proto"]), grpc.WaitForReady(false))

@@ -31,9 +31,9 @@ type ErrorMeta struct {
 	Error string `json:"error"`
 }
 
-func NewError(e error) *ErrorMeta {
+func NewError() *ErrorMeta {
 	return &ErrorMeta{
-		Error: e.Error(),
+		Error: "system error",
 	}
 }
 

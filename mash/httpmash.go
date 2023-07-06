@@ -103,13 +103,15 @@ func (m *HttpMash) Listen() error {
 		}
 		err := data.FormatAll()
 		if err != nil {
-			errmsg := meta.NewError(err)
+			log.Println(err)
+			errmsg := meta.NewError()
 			errmsg.PrintErrorByHttp(w)
 			return
 		}
 		result, err := m.handler(ctx, data)
 		if err != nil {
-			errmsg := meta.NewError(err)
+			log.Println(err)
+			errmsg := meta.NewError()
 			errmsg.PrintErrorByHttp(w)
 			return
 		}
