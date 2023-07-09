@@ -10,8 +10,8 @@ type HandlerUnit func(ctx context.Context, data *metadata.MetaData) (any, error)
 func (e HandlerUnit) WareBuild() Middleware {
 	return func(next HandlerUnit) HandlerUnit {
 		return func(ctx context.Context, data *metadata.MetaData) (any, error) {
-			if _, err := e(ctx, data); err != nil {
-				return nil, err
+			if result, err := e(ctx, data); err != nil {
+				return result, err
 			} else {
 				return next(ctx, data)
 			}

@@ -83,7 +83,7 @@ func (rs *RouterService) MatcherUnit() ware.HandlerUnit {
 		log.Println(key)
 		descriptor, ok := rs.Descriptors[key]
 		if !ok {
-			return nil, errors.New("no router here")
+			return metadata.NewError("no router here"), errors.New("no router here")
 		}
 
 		data.Descriptor.Method = descriptor.Method

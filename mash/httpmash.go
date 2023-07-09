@@ -102,19 +102,12 @@ func (m *HttpMash) Listen() error {
 		err := data.FormatAll()
 		if err != nil {
 			log.Println(err)
-			errmsg := meta.NewError()
+			errmsg := meta.NewError("sysem error")
 			errmsg.PrintErrorByHttp(w)
 			return
 		}
 		result, err := m.handler(ctx, data)
-		if err != nil {
-			log.Println(err)
-			errmsg := meta.NewError()
-			errmsg.PrintErrorByHttp(w)
-			return
-		}
-
-		if m.afterhandler != nil {
+		if err == nil && m.afterhandler != nil {
 			after := &meta.AfterMetaData{
 				MetaData: data,
 				Result:   result,
@@ -122,9 +115,15 @@ func (m *HttpMash) Listen() error {
 			result, _ = m.afterhandler(after)
 		}
 
-		b, _ := json.Marshal(result)
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(b)
+		b, err := json.Marshal(result)
+		if err != nil {
+			log.Println(err)
+			errmsg := meta.NewError("sysem error")
+			errmsg.PrintErrorByHttp(w)
+		} else {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(b)
+		}
 	})
 	//reg center watcher hook
 	mux.HandleFunc("/watcher", m.routerservice.Watcher)
