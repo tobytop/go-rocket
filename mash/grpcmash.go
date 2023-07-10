@@ -35,6 +35,7 @@ type GrpcMash struct {
 }
 
 func NewGrpcMash() *GrpcMash {
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	return &GrpcMash{
 		middlewares: make([]ware.Middleware, 0),
 	}

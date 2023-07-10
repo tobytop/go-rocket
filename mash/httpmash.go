@@ -27,6 +27,7 @@ type HttpMash struct {
 }
 
 func NewHttpMash() *HttpMash {
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	return &HttpMash{
 		middlewares:  make([]ware.Middleware, 0),
 		headerfilter: make([]string, 0),
