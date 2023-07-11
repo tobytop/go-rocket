@@ -115,7 +115,9 @@ func (m *HttpMash) Listen() error {
 			}
 			result, _ = m.afterhandler(after)
 		}
-
+		if err != nil {
+			log.Println(err)
+		}
 		b, err := json.Marshal(result)
 		if err != nil {
 			log.Println(err)
