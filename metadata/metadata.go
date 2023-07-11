@@ -66,8 +66,8 @@ func (d *Descriptor) convertToMessage(dic map[string]proto.Message) (proto.Messa
 	return in, out
 }
 
-func (u *URI) GetFullMethod() string {
-	return fmt.Sprintf("/%v.%v/%v", u.PackageName, u.ServiceName, u.Method)
+func (d *Descriptor) GetFullMethod() string {
+	return fmt.Sprintf("/%v.%v/%v", d.PackageName, d.ServiceName, d.Method)
 }
 
 func (m *MetaData) SetServerHost(host string) {

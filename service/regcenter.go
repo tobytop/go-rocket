@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"go-rocket/metadata"
 	"net/http"
 	"reflect"
@@ -62,7 +61,7 @@ func NewLocalCenter(hosts map[string]int, info []*RouterInfo) RegCenter {
 		}
 		p.RequestMessage = reflect.TypeOf(v.InMessage).Elem().String()
 		p.ResponseMessage = reflect.TypeOf(v.OutMessage).Elem().String()
-		key := fmt.Sprintf("/%v.%v/%v", p.PackageName, p.ServiceName, p.Method)
+		key := p.GetFullMethod()
 		key = strings.ToLower(key)
 		descriptors[key] = p
 	}
