@@ -10,8 +10,8 @@ import (
 	"go-rocket/service"
 	"go-rocket/ware"
 	"log"
-	"net/http"
 
+	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -78,7 +78,7 @@ func (m *HttpMash) Listen() error {
 		//head filter
 		md := metadata.MD{}
 		for _, v := range m.headerfilter {
-			md.Append(v, data.Header.Get(v)...)
+			md.Append(v, string(data.Request.Header.Peek(v)))
 		}
 		context := metadata.NewOutgoingContext(ctx, md)
 
@@ -92,20 +92,18 @@ func (m *HttpMash) Listen() error {
 		m.handler = v(m.handler)
 	}
 
-	mux := &http.ServeMux{}
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mainhandler := func(reqctx *fasthttp.RequestCtx) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
 		data := &meta.MetaData{
-			Req: r,
+			RequestCtx: reqctx,
 		}
 		err := data.FormatAll()
 		if err != nil {
 			log.Println(err)
 			errmsg := meta.NewError("sysem error")
-			errmsg.PrintErrorByHttp(w)
-			return
+			errmsg.PrintErrorByHttp(reqctx)
 		}
 		result, err := m.handler(ctx, data)
 		if err == nil && m.afterhandler != nil {
@@ -122,15 +120,21 @@ func (m *HttpMash) Listen() error {
 		if err != nil {
 			log.Println(err)
 			errmsg := meta.NewError("sysem error")
-			errmsg.PrintErrorByHttp(w)
+			errmsg.PrintErrorByHttp(reqctx)
 		} else {
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(b)
+			reqctx.SetContentType("application/json")
+			reqctx.SetBody(b)
 		}
-	})
-	//reg center watcher hook
-	mux.HandleFunc("/watcher", m.routerservice.Watcher)
-	return http.ListenAndServe(m.port, mux)
+	}
+	router := func(reqctx *fasthttp.RequestCtx) {
+		switch string(reqctx.Path()) {
+		case "/watcher":
+			m.routerservice.Watcher(reqctx)
+		default:
+			mainhandler(reqctx)
+		}
+	}
+	return fasthttp.ListenAndServe(m.port, router)
 }
 
 func (m *HttpMash) ListenWithPort(port string) error {

@@ -4,17 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
+	"log"
 	"reflect"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 )
 
 type MetaData struct {
-	Req        *http.Request
+	*fasthttp.RequestCtx
 	Descriptor *Descriptor
 	Payload    map[string]any
 	Header     *metadata.MD
@@ -36,10 +37,10 @@ func NewError(message string) *ErrorMeta {
 	}
 }
 
-func (err *ErrorMeta) PrintErrorByHttp(writer http.ResponseWriter) {
+func (err *ErrorMeta) PrintErrorByHttp(ctx *fasthttp.RequestCtx) {
 	b, _ := json.Marshal(err)
-	writer.Header().Set("Content-Type", "application/json")
-	writer.Write(b)
+	ctx.SetContentType("application/json")
+	ctx.SetBody(b)
 }
 
 type URI struct {
@@ -81,15 +82,15 @@ func (m *MetaData) FormatAll() error {
 	err := m.formatUri()
 	if err == nil {
 		m.FormatPayload()
-		m.FormatHeader()
 	}
 	return err
 }
 
 func (m *MetaData) formatUri() error {
-	st := strings.Split(m.Req.URL.Path, "/")
+	path := string(m.Path())
+	st := strings.Split(path, "/")
 	if len(st) != 4 {
-		return errors.New(m.Req.URL.Path + " is wrong url")
+		return errors.New(path + " is wrong url")
 	}
 	m.Descriptor = &Descriptor{
 		URI: &URI{
@@ -102,24 +103,20 @@ func (m *MetaData) formatUri() error {
 }
 
 func (m *MetaData) FormatPayload() {
-	m.Req.ParseForm()
-	payload := make(map[string]any)
-	for key, v := range m.Req.Form {
-		var data map[string]any
-		err := json.Unmarshal([]byte(key), &data)
-		if err == nil {
-			for kk, vv := range data {
-				payload[kk] = vv
-			}
-		} else {
-			if len(v) > 0 {
-				payload[key] = v[0]
-			} else {
-				payload[key] = ""
-			}
+	m.Payload = make(map[string]any)
+	m.QueryArgs().VisitAll(m.visitallquery)
+	m.PostArgs().VisitAll(m.visitallquery)
+	if len(m.Payload) == 0 {
+		if err := json.Unmarshal(m.PostBody(), &m.Payload); err != nil {
+			log.Println(err)
 		}
 	}
-	m.Payload = payload
+}
+
+func (m *MetaData) visitallquery(key, value []byte) {
+	mainkey := string(key)
+	data := string(value)
+	m.Payload[mainkey] = data
 }
 
 func (m *MetaData) GetProtoMessage(dic map[string]proto.Message) (proto.Message, proto.Message) {
@@ -135,8 +132,4 @@ func (m *MetaData) GetProtoMessage(dic map[string]proto.Message) (proto.Message,
 	}
 
 	return reqIn, resOut
-}
-
-func (m *MetaData) FormatHeader() {
-	m.Header = (*metadata.MD)(&m.Req.Header)
 }

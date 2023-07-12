@@ -3,10 +3,10 @@ package service
 import (
 	"errors"
 	"go-rocket/metadata"
-	"net/http"
 	"reflect"
 	"strings"
 
+	"github.com/valyala/fasthttp"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -23,9 +23,8 @@ type RegCenter interface {
 
 type RegContext struct {
 	*Router
-	AfterLoad Balance
-	Req       *http.Request
-	Writer    http.ResponseWriter
+	AfterLoad  Balance
+	RequestCtx *fasthttp.RequestCtx
 }
 
 type RouterInfo struct {

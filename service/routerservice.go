@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"log"
-	"net/http"
 	"reflect"
 	"strings"
 
 	"go-rocket/metadata"
 	"go-rocket/ware"
 
+	"github.com/valyala/fasthttp"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -109,11 +109,10 @@ func (rs *RouterService) MatcherUnit() ware.HandlerUnit {
 	}
 }
 
-func (rs *RouterService) Watcher(w http.ResponseWriter, r *http.Request) {
+func (rs *RouterService) Watcher(ctx *fasthttp.RequestCtx) {
 	rs.regcenter.Watcher(&RegContext{
-		Router:    rs.Router,
-		AfterLoad: rs.balance,
-		Writer:    w,
-		Req:       r,
+		Router:     rs.Router,
+		AfterLoad:  rs.balance,
+		RequestCtx: ctx,
 	})
 }
