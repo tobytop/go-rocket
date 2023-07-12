@@ -109,6 +109,7 @@ func (m *MetaData) FormatPayload() {
 	if len(m.Payload) == 0 {
 		if err := json.Unmarshal(m.PostBody(), &m.Payload); err != nil {
 			log.Println(err)
+			log.Println(string(m.PostBody()))
 		}
 	}
 }
