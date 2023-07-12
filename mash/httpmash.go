@@ -104,6 +104,7 @@ func (m *HttpMash) Listen() error {
 			log.Println(err)
 			errmsg := meta.NewError("sysem error")
 			errmsg.PrintErrorByHttp(reqctx)
+			return
 		}
 		result, err := m.handler(ctx, data)
 		if err == nil && m.afterhandler != nil {
