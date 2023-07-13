@@ -38,8 +38,9 @@ func main() {
 	// 	log.Fatal("ListenAndServe: ", err)
 	// }
 	mashContainer := mash.NewMashContainer(":9000", ":9008",
-		service.BuildRegisterMessage(&pb1.HelloRequest{}, &pb1.HelloReply{}, &pb2.TestRequest{}, &pb2.TestReply{}),
-		service.BuilderRegCenter(service.NewLocalCenterNoHost([]*service.RouterInfo{
+		service.WithRegisterMessage(&pb1.HelloRequest{}, &pb1.HelloReply{}, &pb2.TestRequest{}, &pb2.TestReply{}),
+		service.WithHookWhite("127.0.0.1"),
+		service.WithRegCenter(service.NewLocalCenterNoHost([]*service.RouterInfo{
 			{
 				Path:       "proto/Greeter/SayHello",
 				Host:       "127.0.0.1:50051",

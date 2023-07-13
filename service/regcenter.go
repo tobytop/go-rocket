@@ -82,4 +82,5 @@ func (l *LocalCenter) LoadDic() (map[string]int, map[string]*metadata.Descriptor
 }
 
 func (l *LocalCenter) Watcher(sender *RegContext) {
+	sender.RequestCtx.SetBodyString("this is local reg center")
 }

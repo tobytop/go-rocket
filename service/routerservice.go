@@ -16,7 +16,7 @@ import (
 
 type RegBuilder func(*RouterService)
 
-func BuilderBalance(balancetype int) RegBuilder {
+func WithBalance(balancetype int) RegBuilder {
 	return func(rs *RouterService) {
 		log.Println("begin loading balance")
 		rs.balance = NewBalance(balancetype)
@@ -24,7 +24,7 @@ func BuilderBalance(balancetype int) RegBuilder {
 	}
 }
 
-func BuilderRegCenter(regcenter RegCenter) RegBuilder {
+func WithRegCenter(regcenter RegCenter) RegBuilder {
 	return func(rs *RouterService) {
 		log.Println("registor router")
 		hosts, descriptors := regcenter.LoadDic()
@@ -37,7 +37,7 @@ func BuilderRegCenter(regcenter RegCenter) RegBuilder {
 	}
 }
 
-func BuildRegisterMessage(protomessages ...proto.Message) RegBuilder {
+func WithRegisterMessage(protomessages ...proto.Message) RegBuilder {
 	return func(rs *RouterService) {
 		log.Println("registor grpc message")
 		regtable := make(map[string]proto.Message)
@@ -51,8 +51,17 @@ func BuildRegisterMessage(protomessages ...proto.Message) RegBuilder {
 	}
 }
 
+func WithHookWhite(hostName ...string) RegBuilder {
+	return func(rs *RouterService) {
+		log.Println("registor hook white list")
+		rs.hookwhite = append(rs.hookwhite, hostName...)
+		log.Println("end hook white list")
+	}
+}
+
 type RouterService struct {
 	*Router
+	hookwhite []string
 	regtable  map[string]proto.Message
 	balance   Balance
 	regcenter RegCenter
@@ -110,6 +119,21 @@ func (rs *RouterService) MatcherUnit() ware.HandlerUnit {
 }
 
 func (rs *RouterService) Watcher(ctx *fasthttp.RequestCtx) {
+	if len(rs.hookwhite) > 0 {
+		host := ctx.RemoteIP().String()
+		isIn := false
+		for _, v := range rs.hookwhite {
+			if strings.EqualFold(host, v) {
+				isIn = true
+			}
+		}
+		if !isIn {
+			errmsg := metadata.NewError("the host:" + host + " not in the hookwhite list")
+			errmsg.PrintErrorByHttp(ctx)
+			return
+		}
+	}
+
 	rs.regcenter.Watcher(&RegContext{
 		Router:     rs.Router,
 		AfterLoad:  rs.balance,

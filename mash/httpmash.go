@@ -94,7 +94,7 @@ func (m *HttpMash) Listen() error {
 		m.handler = v(m.handler)
 	}
 
-	mainhandler := func(reqctx *fasthttp.RequestCtx) {
+	mainRouter := func(reqctx *fasthttp.RequestCtx) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
@@ -129,15 +129,19 @@ func (m *HttpMash) Listen() error {
 			reqctx.SetBody(b)
 		}
 	}
-	router := func(reqctx *fasthttp.RequestCtx) {
+	handler := func(reqctx *fasthttp.RequestCtx) {
 		switch string(reqctx.Path()) {
 		case "/watcher":
 			m.routerservice.Watcher(reqctx)
 		default:
-			mainhandler(reqctx)
+			mainRouter(reqctx)
 		}
 	}
-	return fasthttp.ListenAndServe(m.port, router)
+	sever := &fasthttp.Server{
+		Handler:               handler,
+		NoDefaultServerHeader: true,
+	}
+	return sever.ListenAndServe(m.port)
 }
 
 func (m *HttpMash) ListenWithPort(port string) error {
