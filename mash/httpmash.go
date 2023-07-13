@@ -85,9 +85,12 @@ func (m *HttpMash) Listen() error {
 		context := metadata.NewOutgoingContext(ctx, md)
 
 		//invoke the server moethod by grpc
-		in, out := data.GetProtoMessage(dic)
-		err = gconn.Invoke(context, data.Descriptor.GetFullMethod(), in, out)
-		return out, err
+		if in, out := data.GetProtoMessage(dic); in != nil && out != nil {
+			err = gconn.Invoke(context, data.Descriptor.GetFullMethod(), in, out)
+			return out, err
+		} else {
+			return meta.NewError("sysem error"), errors.New("wrong in or out")
+		}
 	}
 
 	for _, v := range m.middlewares {
