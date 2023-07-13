@@ -37,7 +37,7 @@ func main() {
 	// if err != nil {
 	// 	log.Fatal("ListenAndServe: ", err)
 	// }
-	mash.NewMashContainer(":9000", ":9008",
+	mashContainer := mash.NewMashContainer(":9000", ":9008",
 		service.BuildRegisterMessage(&pb1.HelloRequest{}, &pb1.HelloReply{}, &pb2.TestRequest{}, &pb2.TestReply{}),
 		service.BuilderRegCenter(service.NewLocalCenterNoHost([]*service.RouterInfo{
 			{
@@ -51,5 +51,7 @@ func main() {
 				InMessage:  &pb2.TestRequest{},
 				OutMessage: &pb2.TestReply{},
 			},
-		}))).Listen()
+		})))
+	mashContainer.HttpMash.AddHeaderfiler("userid")
+	mashContainer.Listen()
 }

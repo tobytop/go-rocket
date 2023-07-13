@@ -78,7 +78,9 @@ func (m *HttpMash) Listen() error {
 		//head filter
 		md := metadata.MD{}
 		for _, v := range m.headerfilter {
-			md.Append(v, string(data.Request.Header.Peek(v)))
+			if peek := string(data.Request.Header.Peek(v)); len(peek) > 0 {
+				md.Append(v, peek)
+			}
 		}
 		context := metadata.NewOutgoingContext(ctx, md)
 
