@@ -99,7 +99,14 @@ func (m *HttpMash) Listen() error {
 
 	mainRouter := func(reqctx *fasthttp.RequestCtx) {
 		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println(err)
+				errmsg := meta.NewError("sysem error")
+				errmsg.PrintErrorByHttp(reqctx)
+			}
+			cancel()
+		}()
 
 		data := &meta.MetaData{
 			RequestCtx: reqctx,

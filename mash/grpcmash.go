@@ -67,14 +67,20 @@ func (m *GrpcMash) AddMiddlewares(middleware ...ware.Middleware) {
 }
 
 func (m *GrpcMash) transhandler() grpc.StreamHandler {
-	return func(srv interface{}, serverStream grpc.ServerStream) error {
+	return func(srv interface{}, serverStream grpc.ServerStream) (e error) {
 		path, ok := grpc.MethodFromServerStream(serverStream)
 		if !ok {
 			return errors.New("path is wrong")
 		}
 		incomingCtx := serverStream.Context()
 		clientCtx, clientCancel := context.WithCancel(incomingCtx)
-		defer clientCancel()
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println(err)
+				e = status.Errorf(codes.Internal, "gRPC proxying should never reach this stage.")
+			}
+			clientCancel()
+		}()
 
 		header, _ := metadata.FromIncomingContext(clientCtx)
 		data := buildMeta(path)
