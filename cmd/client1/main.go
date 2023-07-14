@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -18,8 +17,8 @@ type server struct {
 }
 
 func (s *server) SayHello(ctx context.Context, in *pb.TestRequest) (*pb.TestReply, error) {
-	md, _ := metadata.FromIncomingContext(ctx)
-	fmt.Println(md)
+	//md, _ := metadata.FromIncomingContext(ctx)
+	fmt.Println(in.One)
 	time.Sleep(800 * time.Millisecond)
 	// 创建一个HelloReply消息，设置Message字段，然后直接返回。
 	return &pb.TestReply{Message: "tests 1" + in.Name}, nil

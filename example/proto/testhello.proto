@@ -9,8 +9,18 @@ service NewGreeter {
   
   message TestRequest {
     string name = 1;
+    repeated person one = 2;
   }
   
   message TestReply {
-    string message = 1;
+    string message =1;
+  }
+  message person {
+    string name =1;
+    int32 age =2;
+    float income =3;
+    stroy mystroy=4;
+  }
+  message stroy{
+    string two=1;
   }
