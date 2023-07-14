@@ -43,6 +43,12 @@ func (err *ErrorMeta) PrintErrorByHttp(ctx *fasthttp.RequestCtx) {
 	ctx.SetBody(b)
 }
 
+func PrintDefaultError(ctx *fasthttp.RequestCtx, err any) {
+	log.Println(err)
+	errmsg := NewError("sysem error")
+	errmsg.PrintErrorByHttp(ctx)
+}
+
 type URI struct {
 	PackageName string
 	ServiceName string

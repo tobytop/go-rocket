@@ -101,9 +101,7 @@ func (m *HttpMash) Listen() error {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer func() {
 			if err := recover(); err != nil {
-				log.Println(err)
-				errmsg := meta.NewError("sysem error")
-				errmsg.PrintErrorByHttp(reqctx)
+				meta.PrintDefaultError(reqctx, err)
 			}
 			cancel()
 		}()
@@ -113,9 +111,7 @@ func (m *HttpMash) Listen() error {
 		}
 		err := data.FormatAll()
 		if err != nil {
-			log.Println(err)
-			errmsg := meta.NewError("sysem error")
-			errmsg.PrintErrorByHttp(reqctx)
+			meta.PrintDefaultError(reqctx, err)
 			return
 		}
 		result, err := m.handler(ctx, data)
@@ -131,9 +127,7 @@ func (m *HttpMash) Listen() error {
 		}
 		b, err := json.Marshal(result)
 		if err != nil {
-			log.Println(err)
-			errmsg := meta.NewError("sysem error")
-			errmsg.PrintErrorByHttp(reqctx)
+			meta.PrintDefaultError(reqctx, err)
 		} else {
 			reqctx.SetContentType("application/json")
 			reqctx.SetBody(b)

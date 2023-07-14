@@ -89,7 +89,6 @@ func BuildService(builders ...RegBuilder) *RouterService {
 func (rs *RouterService) MatcherUnit() ware.HandlerUnit {
 	return func(ctx context.Context, data *metadata.MetaData) (any, error) {
 		key := strings.ToLower(data.Descriptor.GetFullMethod())
-		log.Println(key)
 		descriptor, ok := rs.Descriptors[key]
 		if !ok {
 			return metadata.NewError("no router here"), errors.New("no router here")
